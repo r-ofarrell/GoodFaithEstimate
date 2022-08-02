@@ -167,8 +167,7 @@ class GoodFaithEstimate(qtw.QWidget):
         submit.clicked.connect(self.create_therapist)
         submit.clicked.connect(self.create_estimate)
         submit.clicked.connect(self.create_document)
-        submit.clicked.connect(self.close)
-        submit.clicked.connect(self.parent_window.close)
+        submit.clicked.connect(qtw.QApplication.closeAllWindows)
 
         layout.addWidget(submit)
 
@@ -305,7 +304,7 @@ class ClientInfoEntry(qtw.QWidget):
 
     def estimate_info_window(self):
         if self.new_estimate_window is None:
-            self.new_estimate_window = GoodFaithEstimate(self.client_info)
+            self.new_estimate_window = GoodFaithEstimate(self.client_info, self)
         self.new_estimate_window.show()
 
 
