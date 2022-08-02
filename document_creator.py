@@ -1,4 +1,4 @@
-import datetime as dt
+import pendulum
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx import Document
 #from dateutil.relativedelta import relativedelta
@@ -179,5 +179,5 @@ class GfeDocument:
 if __name__ == "__main__":
     client = Client('John', 'Doe', '06/07/1988', '90837')
     therapist = Therapist('Ryan OFarrell', 165, 'Mount Pleasant')
-    estimate = Estimate(165, dt.datetime.now(), 'New')
+    estimate = Estimate(165, pendulum.now(), 'New')
     gfe = GfeDocument('gfe_introduction.txt', 'dispute.txt', client, therapist, estimate)

@@ -2,7 +2,7 @@ import sys
 import sqlite3
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtg
-import datetime as dt
+import pendulum
 from docx import Document
 from estimate_details import Client, Therapist, Estimate
 from location_of_services import address
@@ -17,7 +17,7 @@ class MainWindow(qtw.QMainWindow):
         self.database = database
         self.new_estimate_window = None
         self.new_client_window = None
-        self.client_info = None 
+        self.client_info = None
 
         self.first_name_entry = qtw.QLineEdit()
         self.last_name_entry = qtw.QLineEdit()
@@ -29,15 +29,14 @@ class MainWindow(qtw.QMainWindow):
         layout.addRow("Last name:", self.last_name_entry)
         layout.addRow("Date of birth:", self.birth_date)
 
-        button_layout = qtw.QHBoxLayout()
-        close_button = qtw.QPushButton('Close')
+        close_button = qtw.QPushButton("Close")
         close_button.clicked.connect(self.close)
         submit = qtw.QPushButton("Submit")
         submit.clicked.connect(
-                            lambda: self.estimate_info_window()
-                            if self.client_search(self.database_connection())
-                            else self.client_not_found_dialogue()
-                        )
+            lambda: self.estimate_info_window()
+            if self.client_search(self.database_connection())
+            else self.client_not_found_dialogue()
+        )
 
         layout.addWidget(submit)
         layout.addWidget(close_button)
@@ -54,9 +53,9 @@ class MainWindow(qtw.QMainWindow):
 
     def client_search(self, database_cursor):
         query = (
-                "SELECT client_id, first_name, last_name, date_of_birth " 
-                "FROM clients WHERE first_name=:FirstName and "
-                "last_name=:LastName and date_of_birth=:DOB"
+            "SELECT client_id, first_name, last_name, date_of_birth "
+            "FROM clients WHERE first_name=:FirstName and "
+            "last_name=:LastName and date_of_birth=:DOB"
         )
         search_parameters = {
             "FirstName": self.first_name_entry.text().rstrip(),
@@ -68,32 +67,33 @@ class MainWindow(qtw.QMainWindow):
         results = database_cursor.fetchall()
 
         if results:
-            print(
-                f"I found {results} {self.first_name_entry.text()} "
-                f"{self.last_name_entry.text()} in the database!"
-            )
-
             self.client_info = results[0]
 
             return results[0]
 
-        else:
-            print(
-                f"This is stupid and does not work. Date of birth: "
-                f"{self.birth_date.text()}"
-            )
+        self.client_info = (
+            self.first_name_entry.text(),
+            self.last_name_entry.text(),
+            self.birth_date.text(),
+        )
+
+        return None
 
     def estimate_info_window(self):
         if self.new_estimate_window is None:
-            self.new_estimate_window = GoodFaithEstimate(self.client_info, self)
+            self.new_estimate_window = GoodFaithEstimate(
+                self.client_info, self
+            )
         self.new_estimate_window.show()
 
     def client_not_found_dialogue(self):
         message = (
-                "The entered client was not found in the database.\n\n"
-                "Would you like to enter the client as a new client?"
-                )
-        enter_new_client = qtw.QMessageBox.question(self, 'Client note found', message)
+            "The entered client was not found in the database.\n\n"
+            "Would you like to enter the client as a new client?"
+        )
+        enter_new_client = qtw.QMessageBox.question(
+            self, "Client not found", message
+        )
         if enter_new_client == qtw.QMessageBox.Yes:
             self.show_new_client_window()
         else:
@@ -101,7 +101,7 @@ class MainWindow(qtw.QMainWindow):
 
     def show_new_client_window(self):
         if self.new_client_window is None:
-            self.new_client_window = ClientInfoEntry(self) 
+            self.new_client_window = ClientInfoEntry(self.client_info, self)
         self.new_client_window.show()
 
 
@@ -110,6 +110,7 @@ class GoodFaithEstimate(qtw.QWidget):
         super(qtw.QWidget, self).__init__()
 
         self.parent_window = parent_window
+        self.dbconn, self.dbcur = self.database_connection("gfe_db.db")
         self.client_id = client_info[0]
         self.first_name = client_info[1]
         self.last_name = client_info[2]
@@ -152,7 +153,9 @@ class GoodFaithEstimate(qtw.QWidget):
         self.session_rate = qtw.QLineEdit()
         self.session_rate.setValidator(qtg.QIntValidator(0, 300, self))
         self.location = qtw.QComboBox()
-        self.location.addItems(["Mount Pleasant", "North Charleston", "Telehealth"])
+        self.location.addItems(
+            ["Mount Pleasant", "North Charleston", "Telehealth"]
+        )
 
         layout = qtw.QFormLayout()
         layout.addWidget(self.client_name_label)
@@ -163,9 +166,9 @@ class GoodFaithEstimate(qtw.QWidget):
         layout.addRow("Location for services:", self.location)
 
         submit = qtw.QPushButton("Submit")
-        submit.clicked.connect(self.create_client)
-        submit.clicked.connect(self.create_therapist)
-        submit.clicked.connect(self.create_estimate)
+        submit.clicked.connect(
+            lambda: self.insert_estimate_details(self.dbconn, self.dbcur)
+        )
         submit.clicked.connect(self.create_document)
         submit.clicked.connect(qtw.QApplication.closeAllWindows)
 
@@ -175,74 +178,116 @@ class GoodFaithEstimate(qtw.QWidget):
 
     def create_document(self):
         gfe = GfeDocument(
-                'gfe_introduction.txt', 'dispute.txt', self.client_info, 
-                self.therapist_info, self.estimate_info)
+            "gfe_introduction.txt",
+            "dispute.txt",
+            self.client_info,
+            self.therapist_info,
+            self.estimate_info,
+        )
 
     def create_client(self):
         self.client_info = Client(
-                self.first_name,
-                self.last_name,
-                self.date_of_birth,
-                self.services_sought.currentText()
-                )
+            self.first_name,
+            self.last_name,
+            self.date_of_birth,
+            self.services_sought.currentText(),
+        )
 
     def create_therapist(self):
         self.therapist_info = Therapist(
-                self.therapists.currentText(),
-                self.session_rate.text(),
-                self.location.currentText()
-                )
+            self.therapists.currentText(),
+            self.session_rate.text(),
+            self.location.currentText(),
+        )
 
     def create_estimate(self):
         self.estimate_info = Estimate(
             self.session_rate.text(),
-            dt.datetime.now(),
-            self.new_updated.currentText()
+            pendulum.now(),
+            self.new_updated.currentText(),
         )
+
+    def database_connection(self, database):
+        conn = sqlite3.connect(database)
+        cur = conn.cursor()
+        return (conn, cur)
+
+    def insert_estimate_details(self, conn, cur):
+        self.create_client()
+        self.create_therapist()
+        self.create_estimate()
+        query = """INSERT INTO estimate_details (client_id, therapist, 
+        date_of_estimate, renewal_date, services_sought, session_rate, 
+        low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?, 
+        ?, ?);"""
+
+        DateOfEstimate = pendulum.now()
+        DateOfEstimateFormatted = DateOfEstimate.format("L")
+        RenewalDate = DateOfEstimate.add(months=6)
+        RenewalDateFormatted = RenewalDate.format("L")
+
+        values_tuple = (
+            self.client_id,
+            self.therapists.currentText(),
+            DateOfEstimateFormatted,
+            RenewalDateFormatted,
+            self.services_sought.currentText(),
+            self.session_rate.text(),
+            self.estimate_info.low_estimate,
+            self.estimate_info.high_estimate,
+            self.therapist_info.location,
+        )
+
+        cur.execute(query, values_tuple)
+        conn.commit()
+        conn.close()
 
 
 class ClientInfoEntry(qtw.QWidget):
-    def __init__(self, parent):
+    def __init__(self, client_info, parent):
         super(qtw.QWidget, self).__init__()
 
+        self.first_name, self.last_name, self.date_of_birth = client_info
         self.parent = parent
         self.new_estimate_window = None
         self.client_info = None
-        self.dbconn, self.dbcur = self.database_connection('gfe_db.db')
+        self.dbconn, self.dbcur = self.database_connection("gfe_db.db")
 
         self.setWindowTitle("Enter New Client Information")
 
-        self.first_name = qtw.QLineEdit()
-        self.last_name = qtw.QLineEdit()
-        self.date_of_birth = qtw.QDateEdit()
-        self.date_of_birth.setDisplayFormat("MM/dd/yyyy")
+        self.first_name_label = qtw.QLabel(self.first_name)
+        self.last_name_label = qtw.QLabel(self.last_name)
+        self.date_of_birth_label = qtw.QLabel(self.date_of_birth)
         self.email = qtw.QLineEdit()
         self.area_code = qtw.QLineEdit()
         self.phone = qtw.QLineEdit()
         self.street = qtw.QLineEdit()
-        self.apt = qtw.QLineEdit()
+        self.apt_ste_bldg = qtw.QLineEdit()
         self.city = qtw.QLineEdit()
         self.state = qtw.QLineEdit()
         self.zip = qtw.QLineEdit()
 
-
         layout = qtw.QFormLayout()
-        layout.addRow("First name:", self.first_name)
-        layout.addRow("Last name:", self.last_name)
-        layout.addRow("Date of Birth:", self.date_of_birth)
+        layout.addWidget(self.first_name_label)
+        layout.addWidget(self.last_name_label)
+        layout.addWidget(self.date_of_birth_label)
         layout.addRow("Email:", self.email)
         layout.addRow("Area code:", self.area_code)
         layout.addRow("Phone number:", self.phone)
         layout.addRow("Street:", self.street)
-        layout.addRow("Apt/Ste/Bldg:", self.apt)
+        layout.addRow("Apt/Ste/Bldg:", self.apt_ste_bldg)
         layout.addRow("City:", self.city)
         layout.addRow("State:", self.state)
         layout.addRow("Zip:", self.zip)
 
         submit = qtw.QPushButton("Submit")
         cancel = qtw.QPushButton("Cancel")
-        submit.clicked.connect(lambda: self.enter_into_database(self.dbconn, self.dbcur))
-        submit.clicked.connect(lambda: self.pull_from_database(self.dbconn, self.dbcur))
+        submit.clicked.connect(
+            lambda: self.enter_into_database(self.dbconn, self.dbcur)
+        )
+        submit.clicked.connect(
+            lambda: self.pull_from_database(self.dbconn, self.dbcur)
+        )
         submit.clicked.connect(self.close)
         submit.clicked.connect(self.estimate_info_window)
         cancel.clicked.connect(self.close)
@@ -258,26 +303,24 @@ class ClientInfoEntry(qtw.QWidget):
         cur = conn.cursor()
         return (conn, cur)
 
-
     def enter_into_database(self, conn, cur):
-        query = (
-                "INSERT INTO clients (first_name, last_name, date_of_birth) "
-                "VALUES (?, ?, ?);"
-                )
+        query = """INSERT INTO clients (first_name, last_name, date_of_birth, 
+        email, area_code, phone_number, street, apt_ste_bldg, city, state, zip) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
 
         values_tuple = (
-                self.first_name.text(), 
-                self.last_name.text(),
-                self.date_of_birth.text()
-                #                    "Email": self.email.text(),
-                #                    "AreaCode": self.area_code.text(),
-                #                    "PhoneNumber": self.phone_number.text(),
-                #                    "Street": self.street.text(),
-                #                    "AptSteBldg": self.apt_ste_bldg.text(),
-                #                    "City": self.city.text(),
-                #                    "State": self.state.text(),
-                #                    "Zip": self.zip.text()
-                )
+            self.first_name,
+            self.last_name,
+            self.date_of_birth,
+            self.email.text(),
+            self.area_code.text(),
+            self.phone.text(),
+            self.street.text(),
+            self.apt_ste_bldg.text(),
+            self.city.text(),
+            self.state.text(),
+            self.zip.text(),
+        )
 
         cur.execute(query, values_tuple)
         conn.commit()
@@ -286,15 +329,15 @@ class ClientInfoEntry(qtw.QWidget):
 
     def pull_from_database(self, conn, cur):
         query = (
-                "SELECT client_id, first_name, last_name, date_of_birth " 
-                "FROM clients WHERE first_name=:FirstName and "
-                "last_name=:LastName and date_of_birth=:DOB"
+            "SELECT client_id, first_name, last_name, date_of_birth "
+            "FROM clients WHERE first_name=:FirstName and "
+            "last_name=:LastName and date_of_birth=:DOB"
         )
 
         search_parameters = {
-            "FirstName": self.first_name.text().rstrip(),
-            "LastName": self.last_name.text().rstrip(),
-            "DOB": self.date_of_birth.text().rstrip(),
+            "FirstName": self.first_name.rstrip(),
+            "LastName": self.last_name.rstrip(),
+            "DOB": self.date_of_birth.rstrip(),
         }
 
         cur.execute(query, search_parameters)
@@ -304,10 +347,10 @@ class ClientInfoEntry(qtw.QWidget):
 
     def estimate_info_window(self):
         if self.new_estimate_window is None:
-            self.new_estimate_window = GoodFaithEstimate(self.client_info, self)
+            self.new_estimate_window = GoodFaithEstimate(
+                self.client_info, self
+            )
         self.new_estimate_window.show()
-
-
 
 
 if __name__ == "__main__":
@@ -317,7 +360,3 @@ if __name__ == "__main__":
     main.show()
 
     sys.exit(app.exec_())
-
-                #":Email, :AreaCode, :PhoneNumber, :Street, :AptSteBldg, :City, "
-                #":State, :Zip"
-
