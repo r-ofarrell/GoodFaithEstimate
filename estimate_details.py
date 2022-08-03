@@ -1,9 +1,9 @@
 class Estimate:
     """Contains details for a Good Faith Estimate"""
-    def __init__(self, rate, date, new_or_update, low_sessions=12, high_sessions=24):
+    def __init__(self, rate, date, first_year_or_additional, low_sessions=12, high_sessions=24):
         self.rate = rate
         self.date = date
-        self.new_or_update = new_or_update
+        self.first_year_or_additional = first_year_or_additional
         self.low_sessions = low_sessions
         self.high_sessions = high_sessions
         self.low_estimate = int(self.rate) * int(self.low_sessions)

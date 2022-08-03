@@ -128,8 +128,8 @@ class GoodFaithEstimate(qtw.QWidget):
             f"Date of Birth: {self.date_of_birth}"
         )
 
-        self.new_updated = qtw.QComboBox()
-        self.new_updated.addItems(["New", "Updated"])
+        self.first_or_additional = qtw.QComboBox()
+        self.first_or_additional.addItems(["First year", "Additional year"])
         self.therapists = qtw.QComboBox()
         self.therapists.addItems(
             [
@@ -159,7 +159,7 @@ class GoodFaithEstimate(qtw.QWidget):
 
         layout = qtw.QFormLayout()
         layout.addWidget(self.client_name_label)
-        layout.addRow("New or updated GFE:", self.new_updated)
+        layout.addRow("GFE within first year \nor GFE for additional year", self.first_or_additional)
         layout.addRow("Therapist:", self.therapists)
         layout.addRow("Services sought:", self.services_sought)
         layout.addRow("Session rate:", self.session_rate)
@@ -204,7 +204,7 @@ class GoodFaithEstimate(qtw.QWidget):
         self.estimate_info = Estimate(
             self.session_rate.text(),
             pendulum.now(),
-            self.new_updated.currentText(),
+            self.first_or_additional.currentText(),
         )
 
     def database_connection(self, database):

@@ -62,7 +62,7 @@ class GfeDocument:
             self.create_section1(client, estimate, therapist)
         )
         document.add_page_break()
-        if estimate.new_or_update == "Update":
+        if estimate.first_year_or_additional == "Additional year":
             document.add_heading(
                 "Itemized estimate for 12 session course of treatment", level=2
             )
