@@ -2,15 +2,17 @@ import sys
 import sqlite3
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtg
+import PyQt5.QtCore as qtc
+from PyQt5.QtCore import QDate
 import pendulum
 from docx import Document
 from estimate_details import Client, Therapist, Estimate
 from location_of_services import address
 from document_creator import GfeDocument
-from PyQt5.QtCore import QDate
 
 
 class MainWindow(qtw.QMainWindow):
+    """Creates a window to search for a client in a specified database"""
     def __init__(self, database, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
@@ -52,6 +54,7 @@ class MainWindow(qtw.QMainWindow):
         return cur
 
     def client_search(self, database_cursor):
+        "Searches for a client in a specified database."
         query = (
             "SELECT client_id, first_name, last_name, date_of_birth "
             "FROM clients WHERE first_name=:FirstName and "
@@ -80,6 +83,7 @@ class MainWindow(qtw.QMainWindow):
         return None
 
     def estimate_info_window(self):
+        """Opens a window for inputting information for a Good Faith Estimate."""
         if self.new_estimate_window is None:
             self.new_estimate_window = GoodFaithEstimate(
                 self.client_info, self
@@ -87,6 +91,7 @@ class MainWindow(qtw.QMainWindow):
         self.new_estimate_window.show()
 
     def client_not_found_dialogue(self):
+        """Opens a window when a client is not found in the database."""
         message = (
             "The entered client was not found in the database.\n\n"
             "Would you like to enter the client as a new client?"
@@ -100,12 +105,14 @@ class MainWindow(qtw.QMainWindow):
             self.show()
 
     def show_new_client_window(self):
+        """Opens a window for inputting a new clients information."""
         if self.new_client_window is None:
             self.new_client_window = ClientInfoEntry(self.client_info, self)
         self.new_client_window.show()
 
 
 class GoodFaithEstimate(qtw.QWidget):
+    """A GUI for obtaining information to make a Good Faith Estimate."""
     def __init__(self, client_info, parent_window=None):
         super(qtw.QWidget, self).__init__()
 
@@ -151,7 +158,7 @@ class GoodFaithEstimate(qtw.QWidget):
         self.services_sought = qtw.QComboBox()
         self.services_sought.addItems(["90837", "90847"])
         self.session_rate = qtw.QLineEdit()
-        self.session_rate.setValidator(qtg.QIntValidator(0, 300, self))
+        self.session_rate.setValidator(qtg.QIntValidator(0, 5000, self))
         self.location = qtw.QComboBox()
         self.location.addItems(
             ["Mount Pleasant", "North Charleston", "Telehealth"]
@@ -159,7 +166,10 @@ class GoodFaithEstimate(qtw.QWidget):
 
         layout = qtw.QFormLayout()
         layout.addWidget(self.client_name_label)
-        layout.addRow("GFE within first year \nor GFE for additional year", self.first_or_additional)
+        layout.addRow(
+            "GFE within first year \nor GFE for additional year",
+            self.first_or_additional,
+        )
         layout.addRow("Therapist:", self.therapists)
         layout.addRow("Services sought:", self.services_sought)
         layout.addRow("Session rate:", self.session_rate)
@@ -177,6 +187,7 @@ class GoodFaithEstimate(qtw.QWidget):
         self.setLayout(layout)
 
     def create_document(self):
+        """Creates a Good Faith Estimate docx file."""
         gfe = GfeDocument(
             "gfe_introduction.txt",
             "dispute.txt",
@@ -186,6 +197,7 @@ class GoodFaithEstimate(qtw.QWidget):
         )
 
     def create_client(self):
+        """Stores information about a specified client."""
         self.client_info = Client(
             self.first_name,
             self.last_name,
@@ -194,6 +206,7 @@ class GoodFaithEstimate(qtw.QWidget):
         )
 
     def create_therapist(self):
+        """Stores information about a specified therapist."""
         self.therapist_info = Therapist(
             self.therapists.currentText(),
             self.session_rate.text(),
@@ -201,6 +214,7 @@ class GoodFaithEstimate(qtw.QWidget):
         )
 
     def create_estimate(self):
+        """Stores information for a specifie Good Faith Estimate."""
         self.estimate_info = Estimate(
             self.session_rate.text(),
             pendulum.now(),
@@ -208,11 +222,13 @@ class GoodFaithEstimate(qtw.QWidget):
         )
 
     def database_connection(self, database):
+        """Establishes a connection to the specified database."""
         conn = sqlite3.connect(database)
         cur = conn.cursor()
         return (conn, cur)
 
     def insert_estimate_details(self, conn, cur):
+        """Inserts data obtained from GUI into the specified database."""
         self.create_client()
         self.create_therapist()
         self.create_estimate()
@@ -244,6 +260,7 @@ class GoodFaithEstimate(qtw.QWidget):
 
 
 class ClientInfoEntry(qtw.QWidget):
+    """Creates GUI for inputting information about a new client."""
     def __init__(self, client_info, parent):
         super(qtw.QWidget, self).__init__()
 
@@ -258,14 +275,29 @@ class ClientInfoEntry(qtw.QWidget):
         self.first_name_label = qtw.QLabel(self.first_name)
         self.last_name_label = qtw.QLabel(self.last_name)
         self.date_of_birth_label = qtw.QLabel(self.date_of_birth)
+
         self.email = qtw.QLineEdit()
+
         self.area_code = qtw.QLineEdit()
+        area_code_regx = qtc.QRegExp(r"\d{3}")
+        self.area_code_validator = qtg.QRegExpValidator(
+            area_code_regx, self.area_code
+        )
+        self.area_code.setValidator(self.area_code_validator)
+
         self.phone = qtw.QLineEdit()
+        phone_regx = qtc.QRegExp(r"\d{7}")
+        self.phone_validator = qtg.QRegExpValidator(phone_regx, self.phone)
+        self.phone.setValidator(self.phone_validator)
+
         self.street = qtw.QLineEdit()
         self.apt_ste_bldg = qtw.QLineEdit()
         self.city = qtw.QLineEdit()
         self.state = qtw.QLineEdit()
         self.zip = qtw.QLineEdit()
+        zip_regx = qtc.QRegExp(r"\d{5}")
+        self.zip = qtg.QRegExpValidator(zip_regx, self.zip)
+        self.zip.setValidator(self.zip)
 
         layout = qtw.QFormLayout()
         layout.addWidget(self.first_name_label)
@@ -299,11 +331,13 @@ class ClientInfoEntry(qtw.QWidget):
         self.setLayout((layout))
 
     def database_connection(self, database):
+        """Establishes a connection to the specified database."""
         conn = sqlite3.connect(database)
         cur = conn.cursor()
         return (conn, cur)
 
     def enter_into_database(self, conn, cur):
+        """Inserts data obtained from GUI into the specified database."""
         query = """INSERT INTO clients (first_name, last_name, date_of_birth, 
         email, area_code, phone_number, street, apt_ste_bldg, city, state, zip) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
@@ -328,6 +362,7 @@ class ClientInfoEntry(qtw.QWidget):
         print("Success")
 
     def pull_from_database(self, conn, cur):
+        """Retrieves data from specified database to populate a new window."""
         query = (
             "SELECT client_id, first_name, last_name, date_of_birth "
             "FROM clients WHERE first_name=:FirstName and "
@@ -346,6 +381,7 @@ class ClientInfoEntry(qtw.QWidget):
         self.client_info = results[0]
 
     def estimate_info_window(self):
+        """Opens a window for inputting data for a Good Faith Estimate."""
         if self.new_estimate_window is None:
             self.new_estimate_window = GoodFaithEstimate(
                 self.client_info, self

@@ -1,16 +1,16 @@
 import pendulum
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx import Document
-#from dateutil.relativedelta import relativedelta
 from estimate_details import Client, Therapist, Estimate
 from location_of_services import address
 
 
 class GfeDocument:
+    """Creates a Good Faith Estimate form and saves it in docx."""
+
     def __init__(self, section1, section2, client, therapist, estimate):
         self.section1 = section1
         self.section2 = section2
-
 
         low_estimate = [
             ("Admin-\nistrative fee", "None", "None", "25", "1", "25"),
@@ -78,6 +78,8 @@ class GfeDocument:
                 f"\n{address(therapist.location)}"
             )
         else:
+            # Takes out the initial assessment and registration fee rows when
+            # the estimate is for an additional year of services.
             document.add_heading(
                 "Itemized estimate for 12 session course of treatment", level=2
             )
@@ -100,15 +102,21 @@ class GfeDocument:
 
         document.save("prototype.docx")
 
-    def create_section1(self, client, estimate, therapist):
+    def create_section1(
+        self, client: "Client", estimate: "Estimate", therapist: "Therapist"
+    ) -> str:
+        """Reads text from a given file and auto-populates information."""
         lines = []
         with open(self.section1) as section1:
             for line in section1:
                 if "{full_name}" in line:
                     lines.append(
-                        line.format(full_name=(client.first_name + ' ' + client.last_name).rstrip()
-                    )
+                        line.format(
+                            full_name=(
+                                client.first_name + " " + client.last_name
+                            ).rstrip()
                         )
+                    )
 
                 elif "{date_of_birth}" in line:
                     lines.append(
@@ -139,7 +147,8 @@ class GfeDocument:
 
         return "".join(lines)
 
-    def create_other_sections(self, file):
+    def create_other_sections(self, file: str) -> str:
+        """Reads text from a file to use in sections of a Good Faith Estimate"""
         lines = []
         with open(file) as disclaimer:
             for line in disclaimer:
@@ -150,7 +159,10 @@ class GfeDocument:
 
         return "".join(lines)
 
-    def create_estimate_table(self, document_obj, itemized_list):
+    def create_estimate_table(
+            self, document_obj: 'Document', itemized_list: list
+    ) -> 'Document.add_table':
+        """Creates a table of itemized services for a Good Faith Estimate."""
 
         table = document_obj.add_table(rows=1, cols=6)
 
@@ -177,7 +189,9 @@ class GfeDocument:
 
 
 if __name__ == "__main__":
-    client = Client('John', 'Doe', '06/07/1988', '90837')
-    therapist = Therapist('Ryan OFarrell', 165, 'Mount Pleasant')
-    estimate = Estimate(165, pendulum.now(), 'New')
-    gfe = GfeDocument('gfe_introduction.txt', 'dispute.txt', client, therapist, estimate)
+    JohnDoe = Client("John", "Doe", "06/07/1988", "90837")
+    RyanO = Therapist("Ryan OFarrell", 165, "Mount Pleasant")
+    JohnDoeEstimate = Estimate(165, pendulum.now(), "New")
+    JohnDoeGFEDocument = GfeDocument(
+        "gfe_introduction.txt", "dispute.txt", JohnDoe, RyanO, JohnDoeEstimate
+    )
