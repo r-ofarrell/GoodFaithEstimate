@@ -331,8 +331,8 @@ class ClientInfoEntry(qtw.QWidget):
         self.state = qtw.QLineEdit()
         self.zip = qtw.QLineEdit()
         zip_regx = qtc.QRegExp(r"\d{5}")
-        self.zip = qtg.QRegExpValidator(zip_regx, self.zip)
-        self.zip.setValidator(self.zip)
+        self.zip_validator = qtg.QRegExpValidator(zip_regx, self.zip)
+        self.zip.setValidator(self.zip_validator)
 
         layout = qtw.QFormLayout()
         layout.addWidget(self.first_name_label)
@@ -350,10 +350,10 @@ class ClientInfoEntry(qtw.QWidget):
         submit = qtw.QPushButton("Submit")
         cancel = qtw.QPushButton("Cancel")
         submit.clicked.connect(
-            lambda: self.enter_into_database(self.db_conn, self.db_cur)
+            lambda: self.enter_into_database()
         )
         submit.clicked.connect(
-            lambda: self.pull_from_database(self.db_conn, self.db_cur)
+            lambda: self.pull_from_database()
         )
         submit.clicked.connect(self.close)
         submit.clicked.connect(self.estimate_info_window)

@@ -13,7 +13,7 @@ class GfeDocument:
         self.section2 = section2
 
         low_estimate = [
-            ("Admin-\nistrative fee", "None", "None", "25", "1", "25"),
+            ("Registr-\nation fee", "None", "None", "25", "1", "25"),
             (
                 "Initial evaluation",
                 "90971",
@@ -33,7 +33,7 @@ class GfeDocument:
         ]
 
         high_estimate = [
-            ("Admin-\nistrative fee", "None", "None", "25", "1", "25"),
+            ("Registr-\nation fee", "None", "None", "25", "1", "25"),
             (
                 "Initial evaluation",
                 "90971",
@@ -110,11 +110,10 @@ class GfeDocument:
         with open(self.section1) as section1:
             for line in section1:
                 if "{full_name}" in line:
+                    client_full_name = f'{client.first_name} {client.last_name}'
                     lines.append(
                         line.format(
-                            full_name=(
-                                client.first_name + " " + client.last_name
-                            ).rstrip()
+                            full_name=(client_full_name).rstrip()
                         )
                     )
 
@@ -134,11 +133,18 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
-                    therapist_full_name = (
-                        f"{therapist.first_name} "
-                        f"{therapist.last_name}, {therapist.license_type}\n"
-                        f"EIN: {therapist.tax_id}\n"
-                    )
+                    if therapist.tax_id:
+                        therapist_full_name = (
+                            f"{therapist.first_name} "
+                            f"{therapist.last_name}, {therapist.license_type}\n"
+                            f"EIN: {therapist.tax_id}\n"
+                        )
+                    else:
+                        therapist_full_name = (
+                            f"{therapist.first_name} "
+                            f"{therapist.last_name}, {therapist.license_type}\n"
+                            f"EIN: N/A\n"
+                        )
                     lines.append(
                         line.format(
                             therapist_name=therapist_full_name
