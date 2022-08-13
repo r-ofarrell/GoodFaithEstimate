@@ -11,12 +11,28 @@ from location_of_services import address
 from document_creator import GfeDocument
 
 
+class DatabaseConnection:
+    """Establishes a connection with a specified database."""
+
+    def __init__(self, database):
+        self.database = database
+
+    def create_connection(self):
+        conn = sqlite3.connect(self.database)
+        cur = conn.cursor()
+
+        return (conn, cur)
+
+
 class MainWindow(qtw.QMainWindow):
     """Creates a window to search for a client in a specified database"""
-    def __init__(self, database, *args, **kwargs):
+
+    def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
-        self.database = database
+        self.db_conn, self.db_cur = DatabaseConnection(
+            "gfe_db.db"
+        ).create_connection()
         self.new_estimate_window = None
         self.new_client_window = None
         self.client_info = None
@@ -36,7 +52,7 @@ class MainWindow(qtw.QMainWindow):
         submit = qtw.QPushButton("Submit")
         submit.clicked.connect(
             lambda: self.estimate_info_window()
-            if self.client_search(self.database_connection())
+            if self.client_search()
             else self.client_not_found_dialogue()
         )
 
@@ -48,12 +64,7 @@ class MainWindow(qtw.QMainWindow):
 
         self.setCentralWidget(widget)
 
-    def database_connection(self):
-        conn = sqlite3.connect(self.database)
-        cur = conn.cursor()
-        return cur
-
-    def client_search(self, database_cursor):
+    def client_search(self):
         "Searches for a client in the specified database."
         query = (
             "SELECT client_id, first_name, last_name, date_of_birth "
@@ -66,8 +77,8 @@ class MainWindow(qtw.QMainWindow):
             "DOB": self.birth_date.text().rstrip(),
         }
 
-        database_cursor.execute(query, search_parameters)
-        results = database_cursor.fetchall()
+        self.db_cur.execute(query, search_parameters)
+        results = self.db_cur.fetchall()
 
         if results:
             self.client_info = results[0]
@@ -113,11 +124,14 @@ class MainWindow(qtw.QMainWindow):
 
 class GoodFaithEstimate(qtw.QWidget):
     """A GUI for obtaining information to make a Good Faith Estimate."""
+
     def __init__(self, client_info, parent_window=None):
         super(qtw.QWidget, self).__init__()
 
         self.parent_window = parent_window
-        self.dbconn, self.dbcur = self.database_connection("gfe_db.db")
+        self.db_conn, self.db_cur = DatabaseConnection(
+            "gfe_db.db"
+        ).create_connection()
         self.client_id = client_info[0]
         self.first_name = client_info[1]
         self.last_name = client_info[2]
@@ -179,9 +193,7 @@ class GoodFaithEstimate(qtw.QWidget):
         layout.addRow("Location for services:", self.location)
 
         submit = qtw.QPushButton("Submit")
-        submit.clicked.connect(
-            lambda: self.insert_estimate_details(self.dbconn, self.dbcur)
-        )
+        submit.clicked.connect(lambda: self.insert_estimate_details())
         submit.clicked.connect(self.create_document)
         submit.clicked.connect(qtw.QApplication.closeAllWindows)
 
@@ -213,10 +225,19 @@ class GoodFaithEstimate(qtw.QWidget):
         full_name = self.therapists.currentText().split()
         first_name = full_name[0]
         last_name = full_name[1]
+
+        query = """SELECT license_type, tax_id, npi FROM therapists WHERE first_name = (?)
+        and last_name = (?)"""
+        values = (first_name, last_name)
+        self.db_cur.execute(query, values)
+        license_type, tax_id, npi = self.db_cur.fetchone()
+
         self.therapist_info = Therapist(
             first_name,
             last_name,
-            self.session_rate.text(),
+            license_type,
+            tax_id,
+            npi,
             self.location.currentText(),
         )
 
@@ -228,22 +249,16 @@ class GoodFaithEstimate(qtw.QWidget):
             self.first_or_additional.currentText(),
         )
 
-    def database_connection(self, database):
-        """Establishes a connection to the specified database."""
-        conn = sqlite3.connect(database)
-        cur = conn.cursor()
-        return (conn, cur)
-
-    def retrieve_therapist_id(self, therapist_obj, conn, cur):
+    def retrieve_therapist_id(self, therapist_obj):
         """Retrieves the therapist id for the therapist selected in combobox."""
         query = """SELECT therapist_id FROM therapists WHERE first_name = (?)
         and last_name = (?);"""
         values = (therapist_obj.first_name, therapist_obj.last_name)
-        cur.execute(query, values)
-        therapist_id = cur.fetchall()
+        self.db_cur.execute(query, values)
+        therapist_id = self.db_cur.fetchall()
         return therapist_id
 
-    def insert_estimate_details(self, conn, cur):
+    def insert_estimate_details(self):
         """Inserts data obtained from GUI into the specified database."""
         self.create_client()
         self.create_therapist()
@@ -253,7 +268,7 @@ class GoodFaithEstimate(qtw.QWidget):
         low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?, 
         ?, ?);"""
 
-        TherapistID = self.retrieve_therapist_id(self.therapist_info, conn, cur)[0][0]
+        TherapistID = self.retrieve_therapist_id(self.therapist_info)[0][0]
         DateOfEstimate = pendulum.now()
         DateOfEstimateFormatted = DateOfEstimate.format("L")
         RenewalDate = DateOfEstimate.add(months=6)
@@ -271,13 +286,14 @@ class GoodFaithEstimate(qtw.QWidget):
             self.therapist_info.location,
         )
 
-        cur.execute(query, values_tuple)
-        conn.commit()
-        conn.close()
+        self.db_cur.execute(query, values_tuple)
+        self.db_conn.commit()
+        self.db_conn.close()
 
 
 class ClientInfoEntry(qtw.QWidget):
     """Creates GUI for inputting information about a new client."""
+
     def __init__(self, client_info, parent):
         super(qtw.QWidget, self).__init__()
 
@@ -285,7 +301,9 @@ class ClientInfoEntry(qtw.QWidget):
         self.parent = parent
         self.new_estimate_window = None
         self.client_info = None
-        self.dbconn, self.dbcur = self.database_connection("gfe_db.db")
+        self.db_conn, self.db_cur = DatabaseConnection(
+            "gfe_db.db"
+        ).create_connection()
 
         self.setWindowTitle("Enter New Client Information")
 
@@ -332,10 +350,10 @@ class ClientInfoEntry(qtw.QWidget):
         submit = qtw.QPushButton("Submit")
         cancel = qtw.QPushButton("Cancel")
         submit.clicked.connect(
-            lambda: self.enter_into_database(self.dbconn, self.dbcur)
+            lambda: self.enter_into_database(self.db_conn, self.db_cur)
         )
         submit.clicked.connect(
-            lambda: self.pull_from_database(self.dbconn, self.dbcur)
+            lambda: self.pull_from_database(self.db_conn, self.db_cur)
         )
         submit.clicked.connect(self.close)
         submit.clicked.connect(self.estimate_info_window)
@@ -347,13 +365,7 @@ class ClientInfoEntry(qtw.QWidget):
 
         self.setLayout((layout))
 
-    def database_connection(self, database):
-        """Establishes a connection to the specified database."""
-        conn = sqlite3.connect(database)
-        cur = conn.cursor()
-        return (conn, cur)
-
-    def enter_into_database(self, conn, cur):
+    def enter_into_database(self):
         """Inserts data obtained from GUI into the specified database."""
         query = """INSERT INTO clients (first_name, last_name, date_of_birth, 
         email, area_code, phone_number, street, apt_ste_bldg, city, state, zip) 
@@ -373,12 +385,12 @@ class ClientInfoEntry(qtw.QWidget):
             self.zip.text(),
         )
 
-        cur.execute(query, values_tuple)
-        conn.commit()
+        self.db_cur.execute(query, values_tuple)
+        self.db_conn.commit()
 
         print("Success")
 
-    def pull_from_database(self, conn, cur):
+    def pull_from_database(self):
         """Retrieves data from specified database to populate a new window."""
         query = (
             "SELECT client_id, first_name, last_name, date_of_birth "
@@ -392,8 +404,8 @@ class ClientInfoEntry(qtw.QWidget):
             "DOB": self.date_of_birth.rstrip(),
         }
 
-        cur.execute(query, search_parameters)
-        results = cur.fetchall()
+        self.db_cur.execute(query, search_parameters)
+        results = self.db_cur.fetchall()
 
         self.client_info = results[0]
 
@@ -409,7 +421,7 @@ class ClientInfoEntry(qtw.QWidget):
 if __name__ == "__main__":
     app = qtw.QApplication(sys.argv)
 
-    main = MainWindow("gfe_db.db")
+    main = MainWindow()
     main.show()
 
     sys.exit(app.exec_())

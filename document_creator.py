@@ -18,15 +18,15 @@ class GfeDocument:
                 "Initial evaluation",
                 "90971",
                 "None",
-                str(therapist.rate),
+                str(estimate.rate),
                 "1",
-                str(therapist.rate),
+                str(estimate.rate),
             ),
             (
                 "Psycho-\ntherapy",
                 str(client.services_sought),
                 "None",
-                str(therapist.rate),
+                str(estimate.rate),
                 str(int(estimate.low_sessions)),
                 str(estimate.low_estimate),
             ),
@@ -38,15 +38,15 @@ class GfeDocument:
                 "Initial evaluation",
                 "90971",
                 "None",
-                str(therapist.rate),
+                str(estimate.rate),
                 "1",
-                str(therapist.rate),
+                str(estimate.rate),
             ),
             (
                 "Psycho-\ntherapy",
                 str(client.services_sought),
                 "None",
-                str(therapist.rate),
+                str(estimate.rate),
                 str(int(estimate.high_sessions)),
                 str(estimate.high_estimate),
             ),
@@ -89,8 +89,8 @@ class GfeDocument:
             )
             self.create_estimate_table(document, high_estimate)
             document.add_paragraph(
-                f"\nEstimate range: ${int(estimate.low_estimate) + int(therapist.rate) + 25}-"
-                f"{int(estimate.high_estimate) + int(therapist.rate) + 25}"
+                f"\nEstimate range: ${int(estimate.low_estimate) + int(estimate.rate) + 25}-"
+                f"{int(estimate.high_estimate) + int(estimate.rate) + 25}"
                 "\n\nAddress where services will be provided:"
                 f"\n{address(therapist.location)}"
             )
@@ -134,12 +134,24 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
-                    therapist_full_name = (therapist.first_name + ' ' 
-                            + therapist.last_name)
+                    therapist_full_name = (
+                        f"{therapist.first_name} "
+                        f"{therapist.last_name}, {therapist.license_type}\n"
+                        f"EIN: {therapist.tax_id}\n"
+                    )
                     lines.append(
-                            line.format(therapist_name=therapist_full_name).rstrip()
+                        line.format(
+                            therapist_name=therapist_full_name
+                        ).rstrip()
                         + "\n"
                     )
+
+                elif "{npi}" in line:
+                    if not therapist.npi:
+                        therapist_npi = "N/A"
+                    else:
+                        therapist_npi = therapist.npi
+                    lines.append(line.format(npi=therapist_npi))
 
                 elif line == "\n":
                     lines.append("\n\n")
@@ -162,8 +174,8 @@ class GfeDocument:
         return "".join(lines)
 
     def create_estimate_table(
-            self, document_obj: 'Document', itemized_list: list
-    ) -> 'Document.add_table':
+        self, document_obj: "Document", itemized_list: list
+    ) -> "Document.add_table":
         """Creates a table of itemized services for a Good Faith Estimate."""
 
         table = document_obj.add_table(rows=1, cols=6)
