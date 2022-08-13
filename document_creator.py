@@ -134,8 +134,10 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
+                    therapist_full_name = (therapist.first_name + ' ' 
+                            + therapist.last_name)
                     lines.append(
-                        line.format(therapist_name=therapist.name).rstrip()
+                            line.format(therapist_name=therapist_full_name).rstrip()
                         + "\n"
                     )
 

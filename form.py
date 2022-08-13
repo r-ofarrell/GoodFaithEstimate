@@ -54,7 +54,7 @@ class MainWindow(qtw.QMainWindow):
         return cur
 
     def client_search(self, database_cursor):
-        "Searches for a client in a specified database."
+        "Searches for a client in the specified database."
         query = (
             "SELECT client_id, first_name, last_name, date_of_birth "
             "FROM clients WHERE first_name=:FirstName and "
@@ -140,19 +140,22 @@ class GoodFaithEstimate(qtw.QWidget):
         self.therapists = qtw.QComboBox()
         self.therapists.addItems(
             [
-                "Jacquie Atkins, LPC",
-                "Carol Conway, LISW-CL",
-                "Robin Delaney, Ph.D.",
-                "Audrey Godfrey, LPC",
-                "Delores Hollen, LPC",
-                "Elena Layton, LISW-CL",
-                "Ryan O'Farrell, Psy.D.",
-                "Sydney Reynolds, LPC",
-                "Abbi Russo, LPC-A",
-                "Shannon Scott, LPC",
-                "Breanne Stevens, LPC",
-                "Chris Wells, LPC-A",
-                "Carolyn Wenner, LPC",
+                "Jacquie Atkins",
+                "Maddie Bagwell",
+                "Erin Berkey",
+                "Carol Conway",
+                "Robin Delaney",
+                "Audrey Godfrey",
+                "Delores Hollen",
+                "Jeff Kelly",
+                "Elena Layton",
+                "Ryan O'Farrell",
+                "Sydney Reynolds",
+                "Abbi Russo",
+                "Shannon Scott",
+                "Breanne Stevens",
+                "Chris Wells",
+                "Carolyn Wenner",
             ]
         )
         self.services_sought = qtw.QComboBox()
@@ -207,8 +210,12 @@ class GoodFaithEstimate(qtw.QWidget):
 
     def create_therapist(self):
         """Stores information about a specified therapist."""
+        full_name = self.therapists.currentText().split()
+        first_name = full_name[0]
+        last_name = full_name[1]
         self.therapist_info = Therapist(
-            self.therapists.currentText(),
+            first_name,
+            last_name,
             self.session_rate.text(),
             self.location.currentText(),
         )
@@ -227,16 +234,26 @@ class GoodFaithEstimate(qtw.QWidget):
         cur = conn.cursor()
         return (conn, cur)
 
+    def retrieve_therapist_id(self, therapist_obj, conn, cur):
+        """Retrieves the therapist id for the therapist selected in combobox."""
+        query = """SELECT therapist_id FROM therapists WHERE first_name = (?)
+        and last_name = (?);"""
+        values = (therapist_obj.first_name, therapist_obj.last_name)
+        cur.execute(query, values)
+        therapist_id = cur.fetchall()
+        return therapist_id
+
     def insert_estimate_details(self, conn, cur):
         """Inserts data obtained from GUI into the specified database."""
         self.create_client()
         self.create_therapist()
         self.create_estimate()
-        query = """INSERT INTO estimate_details (client_id, therapist, 
+        query = """INSERT INTO estimate_details (client_id, therapist_id, 
         date_of_estimate, renewal_date, services_sought, session_rate, 
         low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?, 
         ?, ?);"""
 
+        TherapistID = self.retrieve_therapist_id(self.therapist_info, conn, cur)[0][0]
         DateOfEstimate = pendulum.now()
         DateOfEstimateFormatted = DateOfEstimate.format("L")
         RenewalDate = DateOfEstimate.add(months=6)
@@ -244,7 +261,7 @@ class GoodFaithEstimate(qtw.QWidget):
 
         values_tuple = (
             self.client_id,
-            self.therapists.currentText(),
+            TherapistID,
             DateOfEstimateFormatted,
             RenewalDateFormatted,
             self.services_sought.currentText(),
