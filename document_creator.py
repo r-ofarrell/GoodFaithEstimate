@@ -1,4 +1,4 @@
-import pendulum
+from datetime import datetime
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx import Document
 from estimate_details import Client, Therapist, Estimate
@@ -109,7 +109,10 @@ class GfeDocument:
             "obligate you to accept the services listed above."
         ).bold = True
 
-        document.save("prototype.docx")
+        today = datetime.today()
+
+        document.save(f"{client.last_name}_{client.first_name}"
+                f"_{today.strftime('%Y-%m-%d')}.docx")
 
     def create_section1(
         self, client: "Client", estimate: "Estimate", therapist: "Therapist"
