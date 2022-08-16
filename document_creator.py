@@ -12,43 +12,52 @@ class GfeDocument:
         self.section1 = section1
         self.section2 = section2
 
+        registration_fee = (
+            "Registr-\nation fee",
+            "None",
+            "None",
+            "$25",
+            "1",
+            "$25",
+        )
+
         low_estimate = [
-            ("Registr-\nation fee", "None", "None", "25", "1", "25"),
+            (registration_fee),
             (
                 "Initial evaluation",
                 "90971",
                 "None",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
                 "1",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
             ),
             (
                 "Psycho-\ntherapy",
                 str(client.services_sought),
                 "None",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
                 str(int(estimate.low_sessions)),
-                str(estimate.low_estimate),
+                f"${str(estimate.low_estimate)}",
             ),
         ]
 
         high_estimate = [
-            ("Registr-\nation fee", "None", "None", "25", "1", "25"),
+            (registration_fee),
             (
                 "Initial evaluation",
                 "90971",
                 "None",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
                 "1",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
             ),
             (
                 "Psycho-\ntherapy",
                 str(client.services_sought),
                 "None",
-                str(estimate.rate),
+                f"${str(estimate.rate)}",
                 str(int(estimate.high_sessions)),
-                str(estimate.high_estimate),
+                f"${str(estimate.high_estimate)}",
             ),
         ]
 
@@ -110,11 +119,11 @@ class GfeDocument:
         with open(self.section1) as section1:
             for line in section1:
                 if "{full_name}" in line:
-                    client_full_name = f'{client.first_name} {client.last_name}'
+                    client_full_name = (
+                        f"{client.first_name} {client.last_name}"
+                    )
                     lines.append(
-                        line.format(
-                            full_name=(client_full_name).rstrip()
-                        )
+                        line.format(full_name=(client_full_name).rstrip())
                     )
 
                 elif "{date_of_birth}" in line:
@@ -206,12 +215,3 @@ class GfeDocument:
                 row_cells[index].text = item
 
         return table
-
-
-if __name__ == "__main__":
-    JohnDoe = Client("John", "Doe", "06/07/1988", "90837")
-    RyanO = Therapist("Ryan OFarrell", 165, "Mount Pleasant")
-    JohnDoeEstimate = Estimate(165, pendulum.now(), "New")
-    JohnDoeGFEDocument = GfeDocument(
-        "gfe_introduction.txt", "dispute.txt", JohnDoe, RyanO, JohnDoeEstimate
-    )
