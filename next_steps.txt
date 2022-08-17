@@ -1,8 +1,0 @@
-1. Add input verifications (especially to the Estimate Details Window)
-
-2. Split off area code in phone number
-
-3. For Estimate Details Window, add parameter that takes the document creator
-object.
-
-4. Make full client information table and gfe table in database.
