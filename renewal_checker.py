@@ -5,34 +5,8 @@ from datetime import datetime
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtG
 import PyQt5. QtCore as qtc
-import pendulum
+from GoodFaithEstimate import resource_path, DatabaseConnection
 
-def resource_path(relative_path):
-    """Get absolute path to a file/database."""
-
-    try:
-        base_path = sys._MEIPASS
-    except:
-        base_path= os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-
-class DatabaseConnection:
-    """Establishes a connection with a specified database."""
-
-    def __init__(self, database):
-        self.database = database
-        self.conn, self.cur = self.create_connection()
-
-    def create_connection(self):
-        conn = sqlite3.connect(self.database)
-        cur = conn.cursor()
-
-        return (conn, cur)
-
-    def close(self):
-        self.conn.close()
 
 class MainWindow(qtw.QMainWindow):
     """Creates a window to display all upcoming GFE renewals."""
@@ -70,8 +44,6 @@ class MainWindow(qtw.QMainWindow):
             formatted_renewal_date = datetime.strptime(renewal, "%Y-%m-%d %H:%M:%S.%f")
             formatted_renewal_date = formatted_renewal_date.strftime("%m-%d-%Y")
 
-
-
             tableWidget.setItem(index, 0, qtw.QTableWidgetItem(str(client_id)))
             tableWidget.setItem(index, 1, qtw.QTableWidgetItem(f'{first} {last}'))
             tableWidget.setItem(index, 2, qtw.QTableWidgetItem(formatted_date_of_estimate))
@@ -90,5 +62,3 @@ if __name__ == "__main__":
     main.show()
 
     sys.exit(app.exec_())
-
-

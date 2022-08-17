@@ -12,13 +12,11 @@ from estimate_details import Client, Therapist, Estimate
 from location_of_services import address
 from document_creator import GfeDocument
 
+
 def resource_path(relative_path):
     """Get absolute path to a file/database."""
 
-    try:
-        base_path = sys._MEIPASS
-    except:
-        base_path= os.path.abspath(".")
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
     return os.path.join(base_path, relative_path)
 
@@ -46,9 +44,7 @@ class MainWindow(qtw.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
-        self.db_conn, self.db_cur = DatabaseConnection(
-            resource_path("gfe_db.db")
-        ).create_connection()
+        self.database = DatabaseConnection(resource_path("gfe_db.db"))
         self.new_estimate_window = None
         self.new_client_window = None
         self.client_info = None
@@ -93,8 +89,9 @@ class MainWindow(qtw.QMainWindow):
             "DOB": self.birth_date.text().rstrip(),
         }
 
-        self.db_cur.execute(query, search_parameters)
-        results = self.db_cur.fetchall()
+        self.database.cur.execute(query, search_parameters)
+        results = self.database.cur.fetchall()
+        
 
         if results:
             self.client_info = results[0]
@@ -145,9 +142,8 @@ class GoodFaithEstimate(qtw.QWidget):
         super(qtw.QWidget, self).__init__()
 
         self.parent_window = parent_window
-        self.db_conn, self.db_cur = DatabaseConnection(
-            resource_path("gfe_db.db")
-        ).create_connection()
+        self.database = DatabaseConnection(
+            resource_path("gfe_db.db"))
         self.client_id = client_info[0]
         self.first_name = client_info[1]
         self.last_name = client_info[2]
@@ -245,8 +241,8 @@ class GoodFaithEstimate(qtw.QWidget):
         query = """SELECT license_type, tax_id, npi FROM therapists WHERE first_name = (?)
         and last_name = (?)"""
         values = (first_name, last_name)
-        self.db_cur.execute(query, values)
-        license_type, tax_id, npi = self.db_cur.fetchone()
+        self.database.cur.execute(query, values)
+        license_type, tax_id, npi = self.database.cur.fetchone()
 
         self.therapist_info = Therapist(
             first_name,
@@ -256,6 +252,7 @@ class GoodFaithEstimate(qtw.QWidget):
             npi,
             self.location.currentText(),
         )
+        
 
     def create_estimate(self):
         """Stores information for a specifie Good Faith Estimate."""
@@ -270,8 +267,9 @@ class GoodFaithEstimate(qtw.QWidget):
         query = """SELECT therapist_id FROM therapists WHERE first_name = (?)
         and last_name = (?);"""
         values = (therapist_obj.first_name, therapist_obj.last_name)
-        self.db_cur.execute(query, values)
-        therapist_id = self.db_cur.fetchall()
+        self.database.cur.execute(query, values)
+        therapist_id = self.database.cur.fetchall()
+        
         return therapist_id
 
     def insert_estimate_details(self):
@@ -303,9 +301,9 @@ class GoodFaithEstimate(qtw.QWidget):
             self.therapist_info.location,
         )
 
-        self.db_cur.execute(query, values_tuple)
-        self.db_conn.commit()
-        self.db_conn.close()
+        self.database.cur.execute(query, values_tuple)
+        self.database.conn.commit()
+        self.database.close()
 
 
 class ClientInfoEntry(qtw.QWidget):
@@ -318,9 +316,7 @@ class ClientInfoEntry(qtw.QWidget):
         self.parent = parent
         self.new_estimate_window = None
         self.client_info = None
-        self.db_conn, self.db_cur = DatabaseConnection(
-            "gfe_db.db"
-        ).create_connection()
+        self.database = DatabaseConnection(resource_path("gfe_db.db"))
 
         self.setWindowTitle("Enter New Client Information")
 
@@ -402,8 +398,8 @@ class ClientInfoEntry(qtw.QWidget):
             self.zip.text(),
         )
 
-        self.db_cur.execute(query, values_tuple)
-        self.db_conn.commit()
+        self.database.cur.execute(query, values_tuple)
+        self.database.conn.commit()
 
         print("Success")
 
@@ -421,10 +417,11 @@ class ClientInfoEntry(qtw.QWidget):
             "DOB": self.date_of_birth.rstrip(),
         }
 
-        self.db_cur.execute(query, search_parameters)
-        results = self.db_cur.fetchall()
+        self.database.cur.execute(query, search_parameters)
+        results = self.database.cur.fetchall()
 
         self.client_info = results[0]
+
 
     def estimate_info_window(self):
         """Opens a window for inputting data for a Good Faith Estimate."""
