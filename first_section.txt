@@ -1,0 +1,33 @@
+Client name: {full_name}
+Date of birth: {date_of_birth}
+Therapist providing services: {therapist_name}
+NPI: {npi}
+Date of Estimate: {date}
+This form provides an estimate of the costs of mental health services received
+through Life Resources. The clinical needs and goals of clients at Life
+Resources vary greatly and as such, an estimate for mental health services will,
+of necessity, be broad. For some, a short-term treatment of 12 sessions is
+sufficient to address one's goals in therapy. For others, a course of 
+treatment that spans a year or more is needed. Additionally, some clients come
+in with specific short-term goals, achieve those quickly, and then decide to
+continue in therapy to work on additional goals or because they come to value
+regular therapy as an important part of their overall strategy for promoting
+mental health. Because of this great diversity of clinical needs and goals, this
+estimate provides a cost range for expected services to be received through Life 
+Resources. Most short-term treatments are approximately 12 sessions long and so
+the low-range of this estimate will be based on a 12 session course of treatment.
+Many of our clients also utilization our scholarship program in order to help
+subsidize the cost of therapy. As our scholarship renewal process occurs 6-months
+after a scholarship has been awarded and as one's scholarship rate will likely
+be adjusted at that time, the high range of this estimate will be based on a 24 
+session (approximately 6 months) course of treatment.
+
+It should be noted that the above estimate only accounts for charges that can be
+reasonably anticipated on the part of Life Resources. Fees you incur due to late 
+cancellations and no-shows could lead your actual costs to exceed those quoted 
+in this Good Faith Estimate, but Life Resources will not be held at fault should
+your total costs exceed the Good Faith Estimate provided because of fees 
+incurred due to late cancellations and/or no-shows. 
+
+Contact: If you have questions about this estimate, please contact the Life
+Resources Intake Coordinator at 843-884-3888.
