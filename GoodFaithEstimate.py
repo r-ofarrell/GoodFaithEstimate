@@ -129,7 +129,7 @@ class MainWindow(qtw.QMainWindow):
             self.show()
 
     def show_new_client_window(self):
-        """Opens a window for inputting a new clients information."""
+        """Opens a window for inputting a new client's information."""
         if self.new_client_window is None:
             self.new_client_window = ClientInfoEntry(self.client_info, self)
         self.new_client_window.show()
@@ -164,26 +164,13 @@ class GoodFaithEstimate(qtw.QWidget):
         self.first_or_additional = qtw.QComboBox()
         self.first_or_additional.addItems(["First year", "Additional year"])
         self.therapists = qtw.QComboBox()
-        self.therapists.addItems(
-            [
-                "Jacquie Atkins",
-                "Maddie Bagwell",
-                "Erin Berkey",
-                "Carol Conway",
-                "Robin Delaney",
-                "Audrey Godfrey",
-                "Delores Hollen",
-                "Jeff Kelly",
-                "Elena Layton",
-                "Ryan O'Farrell",
-                "Sydney Reynolds",
-                "Abbi Russo",
-                "Shannon Scott",
-                "Breanne Stevens",
-                "Chris Wells",
-                "Carolyn Wenner",
-            ]
-        )
+
+        query = """SELECT first_name, last_name FROM therapists"""
+        self.database.cur.execute(query)
+        results = self.database.cur.fetchall()
+        for therapist in results:
+            self.therapists.addItem(f"{therapist[0]} {therapist[1]}")
+
         self.services_sought = qtw.QComboBox()
         self.services_sought.addItems(["90837", "90847"])
         self.session_rate = qtw.QLineEdit()
@@ -238,8 +225,8 @@ class GoodFaithEstimate(qtw.QWidget):
         first_name = full_name[0]
         last_name = full_name[1]
 
-        query = """SELECT license_type, tax_id, npi FROM therapists WHERE first_name = (?)
-        and last_name = (?)"""
+        query = """SELECT license_type, tax_id, npi FROM therapists WHERE 
+        first_name = (?) and last_name = (?)"""
         values = (first_name, last_name)
         self.database.cur.execute(query, values)
         license_type, tax_id, npi = self.database.cur.fetchone()
@@ -284,10 +271,8 @@ class GoodFaithEstimate(qtw.QWidget):
 
         TherapistID = self.retrieve_therapist_id(self.therapist_info)[0][0]
         DateOfEstimate = datetime.now()
-        # DateOfEstimateFormatted = DateOfEstimate.format("L")
         MonthsTillRenewal = relativedelta(months=+6)
         RenewalDate = DateOfEstimate + MonthsTillRenewal
-        # RenewalDateFormatted = RenewalDate.format("L")
 
         values_tuple = (
             self.client_id,
