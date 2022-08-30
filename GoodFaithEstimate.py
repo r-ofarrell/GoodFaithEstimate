@@ -160,7 +160,8 @@ class GoodFaithEstimate(qtw.QWidget):
         self.first_or_additional.addItems(["First year", "Additional year"])
         self.therapists = qtw.QComboBox()
 
-        query = """SELECT first_name, last_name FROM therapists"""
+        query = """SELECT first_name, last_name FROM therapists WHERE 
+        therapist_status = 1;"""
         self.database.cur.execute(query)
         results = self.database.cur.fetchall()
         for therapist in results:
