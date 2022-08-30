@@ -8,7 +8,6 @@ from PyQt5.QtCore import QDate
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 from docx import Document
-from estimate_details import Client, Therapist, Estimate
 from location_of_services import address
 from document_creator import GfeDocument
 
@@ -205,6 +204,7 @@ class GoodFaithEstimate(qtw.QWidget):
         )
 
     def information_for_estimate(self):
+        """Creates a dictionary of information needed for a GFE."""
         (
             therapist_id,
             therapist_first,
@@ -230,7 +230,7 @@ class GoodFaithEstimate(qtw.QWidget):
         }
 
     def therapist_info(self):
-        """Stores information about a specified therapist."""
+        """Pulls information about a specified therapist from database."""
         full_name = self.therapists.currentText().split()
         first_name = full_name[0]
         last_name = full_name[1]
