@@ -1,12 +1,11 @@
 import sys
 import sqlite3
 import os
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtg
 import PyQt5.QtCore as qtc
-from PyQt5.QtCore import QDate
-from dateutil.relativedelta import relativedelta
-from datetime import datetime, timedelta
 from docx import Document
 from location_of_services import address
 from document_creator import GfeDocument
@@ -160,7 +159,7 @@ class GoodFaithEstimate(qtw.QWidget):
         self.first_or_additional.addItems(["First year", "Additional year"])
         self.therapists = qtw.QComboBox()
 
-        query = """SELECT first_name, last_name FROM therapists WHERE 
+        query = """SELECT first_name, last_name FROM therapists WHERE
         therapist_status = 1;"""
         self.database.cur.execute(query)
         results = self.database.cur.fetchall()
@@ -199,9 +198,9 @@ class GoodFaithEstimate(qtw.QWidget):
     def create_document(self):
         """Creates a Good Faith Estimate docx file."""
         GfeDocument(
-        resource_path("first_section.txt"),
-        resource_path("second_section.txt"),
-        self.information_for_estimate(),
+            resource_path("first_section.txt"),
+            resource_path("second_section.txt"),
+            self.information_for_estimate(),
         )
 
     def information_for_estimate(self):
@@ -236,7 +235,7 @@ class GoodFaithEstimate(qtw.QWidget):
         first_name = full_name[0]
         last_name = full_name[1]
 
-        query = """SELECT therapist_id, license_type, tax_id, npi FROM therapists WHERE 
+        query = """SELECT therapist_id, license_type, tax_id, npi FROM therapists WHERE
         first_name = (?) and last_name = (?)"""
         values = (first_name, last_name)
         self.database.cur.execute(query, values)
@@ -244,12 +243,11 @@ class GoodFaithEstimate(qtw.QWidget):
 
         return (therapist_id, first_name, last_name, license_type, tax_id, npi)
 
-
     def insert_estimate_details(self):
         """Inserts data obtained from GUI into the specified database."""
-        query = """INSERT INTO estimate_details (client_id, therapist_id, 
-        date_of_estimate, renewal_date, services_sought, session_rate, 
-        low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?, 
+        query = """INSERT INTO estimate_details (client_id, therapist_id,
+        date_of_estimate, renewal_date, services_sought, session_rate,
+        low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?,
         ?, ?);"""
 
         therapist_id = self.therapist_info()[0]
@@ -346,8 +344,8 @@ class ClientInfoEntry(qtw.QWidget):
 
     def enter_into_database(self):
         """Inserts data obtained from GUI into the specified database."""
-        query = """INSERT INTO clients (first_name, last_name, date_of_birth, 
-        email, area_code, phone_number, street, apt_ste_bldg, city, state, zip) 
+        query = """INSERT INTO clients (first_name, last_name, date_of_birth,
+        email, area_code, phone_number, street, apt_ste_bldg, city, state, zip)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
 
         values_tuple = (
