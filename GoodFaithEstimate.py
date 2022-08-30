@@ -265,8 +265,8 @@ class GoodFaithEstimate(qtw.QWidget):
             str(renewal_date),
             self.services_sought.currentText(),
             self.session_rate.text(),
-            self.session_rate.text() * session_count_low,
-            self.session_rate.text() * session_count_high,
+            int(self.session_rate.text()) * session_count_low,
+            int(self.session_rate.text()) * session_count_high,
             self.location.currentText(),
         )
 
