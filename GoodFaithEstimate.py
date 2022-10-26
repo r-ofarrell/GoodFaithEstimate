@@ -158,6 +158,7 @@ class GoodFaithEstimate(qtw.QWidget):
         self.first_or_additional = qtw.QComboBox()
         self.first_or_additional.addItems(["First year", "Additional year"])
         self.therapists = qtw.QComboBox()
+        self.therapists.addItem("Unmatched")
 
         query = """SELECT first_name, last_name FROM therapists WHERE
         therapist_status = 1;"""
