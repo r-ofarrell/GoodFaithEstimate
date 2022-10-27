@@ -78,7 +78,7 @@ class GfeDocument:
         heading.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
         document.add_paragraph(self.create_section1())
         document.add_page_break()
-        if self.estimate_info["first_or_additional_year"] == "Additional year":
+        if self.estimate_info["first_or_renewal"] == "Renewal":
             document.add_heading(
                 "Itemized estimate for 12 session course of treatment", level=2
             )
@@ -160,7 +160,14 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
-                    if self.estimate_info["tax_id"]:
+                    if self.estimate_info["therapist_last"] == "":
+                        therapist_full_name = (
+                            f"{self.estimate_info['therapist_first']} "
+                            f"{self.estimate_info['therapist_last']}"
+                            f"{self.estimate_info['license_type']}\n"
+                            f"EIN: N/A\n"
+                        )
+                    elif self.estimate_info["tax_id"]:
                         therapist_full_name = (
                             f"{self.estimate_info['therapist_first']} "
                             f"{self.estimate_info['therapist_last']}, "

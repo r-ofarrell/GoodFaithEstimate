@@ -155,8 +155,8 @@ class GoodFaithEstimate(qtw.QWidget):
             f"Date of Birth: {self.date_of_birth}"
         )
 
-        self.first_or_additional = qtw.QComboBox()
-        self.first_or_additional.addItems(["First year", "Additional year"])
+        self.first_or_renewal = qtw.QComboBox()
+        self.first_or_renewal.addItems(["Initial Estimate", "Renewal"])
         self.therapists = qtw.QComboBox()
         self.therapists.addItem("Unmatched")
 
@@ -180,7 +180,7 @@ class GoodFaithEstimate(qtw.QWidget):
         layout.addWidget(self.client_name_label)
         layout.addRow(
             "GFE within first year \nor GFE for additional year",
-            self.first_or_additional,
+            self.first_or_renewal,
         )
         layout.addRow("Therapist:", self.therapists)
         layout.addRow("Services sought:", self.services_sought)
@@ -206,43 +206,65 @@ class GoodFaithEstimate(qtw.QWidget):
 
     def information_for_estimate(self):
         """Creates a dictionary of information needed for a GFE."""
-        (
-            therapist_id,
-            therapist_first,
-            therapist_last,
-            license_type,
-            tax_id,
-            npi,
-        ) = self.therapist_info()
+
+        if len(self.therapist_info()) > 1:
+            (
+                therapist_id,
+                therapist_first,
+                therapist_last,
+                license_type,
+                tax_id,
+                npi,
+            ) = self.therapist_info()
+
+            return {
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "date_of_birth": self.date_of_birth,
+                "date": datetime.now(),
+                "services_sought": self.services_sought.currentText(),
+                "rate": self.session_rate.text(),
+                "therapist_first": therapist_first,
+                "therapist_last": therapist_last,
+                "license_type": license_type,
+                "tax_id": tax_id,
+                "npi": npi,
+                "first_or_renewal": self.first_or_renewal.currentText(),
+                "location": self.location.currentText(),
+                }
+
         return {
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "date_of_birth": self.date_of_birth,
-            "date": datetime.now(),
-            "services_sought": self.services_sought.currentText(),
-            "rate": self.session_rate.text(),
-            "therapist_first": therapist_first,
-            "therapist_last": therapist_last,
-            "license_type": license_type,
-            "tax_id": tax_id,
-            "npi": npi,
-            "first_or_additional_year": self.first_or_additional.currentText(),
-            "location": self.location.currentText(),
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "date_of_birth": self.date_of_birth,
+                "date": datetime.now(),
+                "services_sought": self.services_sought.currentText(),
+                "rate": self.session_rate.text(),
+                "therapist_first": self.therapist_info()[0],
+                "therapist_last": "",
+                "license_type": "",
+                "tax_id": "N/A",
+                "npi": "N/A",
+                "first_or_renewal": self.first_or_renewal.currentText(),
+                "location": self.location.currentText(),
         }
 
     def therapist_info(self):
         """Pulls information about a specified therapist from database."""
         full_name = self.therapists.currentText().split()
         first_name = full_name[0]
-        last_name = full_name[1]
+        if len(full_name) == 2:
+            last_name = full_name[1]
 
-        query = """SELECT therapist_id, license_type, tax_id, npi FROM therapists WHERE
-        first_name = (?) and last_name = (?)"""
-        values = (first_name, last_name)
-        self.database.cur.execute(query, values)
-        therapist_id, license_type, tax_id, npi = self.database.cur.fetchone()
+            query = """SELECT therapist_id, license_type, tax_id, npi FROM therapists WHERE
+            first_name = (?) and last_name = (?)"""
+            values = (first_name, last_name)
+            self.database.cur.execute(query, values)
+            therapist_id, license_type, tax_id, npi = self.database.cur.fetchone()
 
-        return (therapist_id, first_name, last_name, license_type, tax_id, npi)
+            return (therapist_id, first_name, last_name, license_type, tax_id, npi)
+
+        return (first_name,)
 
     def insert_estimate_details(self):
         """Inserts data obtained from GUI into the specified database."""
