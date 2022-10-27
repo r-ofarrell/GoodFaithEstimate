@@ -9,6 +9,7 @@ import PyQt5.QtCore as qtc
 from docx import Document
 from location_of_services import address
 from document_creator import GfeDocument
+from docx2pdf import convert
 
 
 def resource_path(relative_path):
@@ -198,11 +199,16 @@ class GoodFaithEstimate(qtw.QWidget):
 
     def create_document(self):
         """Creates a Good Faith Estimate docx file."""
-        GfeDocument(
+        created_document = GfeDocument(
             resource_path("first_section.txt"),
             resource_path("second_section.txt"),
             self.information_for_estimate(),
         )
+
+        created_filename = created_document.filename
+        print(created_filename)
+
+        convert(created_filename, f"{created_filename[:-5]}.pdf")
 
     def information_for_estimate(self):
         """Creates a dictionary of information needed for a GFE."""

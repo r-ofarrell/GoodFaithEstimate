@@ -20,6 +20,7 @@ class GfeDocument:
         self.estimate_info = estimate_info
         self.session_count_low = session_count_low
         self.session_count_high = session_count_high
+        self.filename = None
 
         registration_fee = (
             "Registr-\nation fee",
@@ -128,6 +129,8 @@ class GfeDocument:
             f"{self.estimate_info['first_name']}_{self.estimate_info['last_name']}"
             f"_{today.strftime('%Y-%m-%d')}.docx"
         )
+
+        self.record_filename(today)
 
     def create_section1(self) -> str:
         """Reads text from a given file and auto-populates information."""
@@ -248,3 +251,7 @@ class GfeDocument:
                 row_cells[index].text = item
 
         return table
+
+    def record_filename(self, date):
+        self.filename = (f"{self.estimate_info['first_name']}_{self.estimate_info['last_name']}"
+                         f"_{date.strftime('%Y-%m-%d')}.docx")

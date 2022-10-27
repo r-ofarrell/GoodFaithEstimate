@@ -1,3 +1,5 @@
+appscript==1.2.1
+docx2pdf==0.1.8
 lxml==4.9.1
 PyQt5==5.15.7
 PyQt5-Qt5==5.15.2
@@ -5,3 +7,4 @@ PyQt5-sip==12.11.0
 python-dateutil==2.8.2
 python-docx==0.8.11
 six==1.16.0
+tqdm==4.64.1
