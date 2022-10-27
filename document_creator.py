@@ -163,10 +163,10 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
-                    if self.estimate_info["therapist_last"] == "":
+                    if self.estimate_info["therapist_last"] == "": # Used when therapist is 'Unmatched'
                         therapist_full_name = (
                             f"{self.estimate_info['therapist_first']} "
-                            f"{self.estimate_info['therapist_last']}"
+                            f"{self.estimate_info['therapist_last']}" # Removed ,
                             f"{self.estimate_info['license_type']}\n"
                             f"EIN: N/A\n"
                         )
