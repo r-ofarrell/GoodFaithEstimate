@@ -48,12 +48,16 @@ class MainWindow(qtw.QMainWindow):
         self.database = DatabaseConnection(resource_path("gfe_db.db"))
         self.new_estimate_window = None
         self.new_client_window = None
-        self.client_info = None
 
         self.first_name_entry = qtw.QLineEdit()
         self.last_name_entry = qtw.QLineEdit()
         self.birth_date = qtw.QDateEdit()
         self.birth_date.setDisplayFormat("MM/dd/yyyy")
+
+        self.setWindowTitle("Client Search")
+        height = 300
+        width = 300
+        self.setMinimumSize(width, height)
 
         layout = qtw.QFormLayout()
         layout.addRow("First name:", self.first_name_entry)
@@ -180,7 +184,7 @@ class GoodFaithEstimate(qtw.QWidget):
         layout = qtw.QFormLayout()
         layout.addWidget(self.client_name_label)
         layout.addRow(
-            "GFE within first year \nor GFE for additional year",
+            "Initial estimate \nor GFE renewal",
             self.first_or_renewal,
         )
         layout.addRow("Therapist:", self.therapists)
