@@ -126,7 +126,7 @@ class GfeDocument:
         today = datetime.today()
 
         document.save(
-            f"{self.estimate_info.client_first_name}_{self.estimate_info.client_first_name}"
+            f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
             f"_{today.strftime('%Y-%m-%d')}.docx"
         )
 
@@ -253,5 +253,5 @@ class GfeDocument:
         return table
 
     def record_filename(self, date):
-        self.filename = (f"{self.estimate_info.client_first_name}_{self.estimate_info.client_last_name}"
+        self.filename = (f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
                          f"_{date.strftime('%Y-%m-%d')}.docx")
