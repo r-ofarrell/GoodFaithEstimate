@@ -1,8 +1,8 @@
-
 import tkinter as tk
 import sys
 import sqlite3
 import os
+import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from tkinter import ttk
@@ -22,8 +22,9 @@ class SearchDatabase:
     def resource_path(self, relative_path):
         """Get absolute path to a file/database."""
 
-        base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-
+        base_path = getattr(
+            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+        )
 
         return os.path.join(base_path, relative_path)
 
@@ -58,6 +59,7 @@ class Therapists(SearchDatabase):
 
         return self.search(query, values)
 
+
 class EstimateInfo:
     def __init__(self):
         self.session_count_low = 12
@@ -72,7 +74,9 @@ class EstimateInfo:
         self.client_last_name = last
         self.client_dob = dob
 
-    def therapist_info(self, therapist_id, first, last, license_type, tax_id, npi):
+    def therapist_info(
+        self, therapist_id, first, last, license_type, tax_id, npi
+    ):
         self.therapist_id = therapist_id
         self.therapist_first_name = first
         self.therapist_last_name = last
@@ -80,22 +84,27 @@ class EstimateInfo:
         self.therapist_tax_id = tax_id
         self.therapist_npi = npi
 
-    def estimate_info(self, estimate_type, services_sought, session_rate, location):
+    def estimate_info(
+        self, estimate_type, services_sought, session_rate, location
+    ):
         self.estimate_type = estimate_type
         self.services_sought = services_sought
         self.session_rate = session_rate
         self.location = location
 
     def values(self):
-        return (self.client_id,
-                self.therapist_id,
-                str(self.date_of_estimate),
-                str(self.renewal_date),
-                self.services_sought,
-                self.session_rate,
-                (int(self.session_rate) * self.session_count_low),
-                (int(self.session_rate) * self.session_count_high),
-                self.location)
+        return (
+            self.client_id,
+            self.therapist_id,
+            str(self.date_of_estimate),
+            str(self.renewal_date),
+            self.services_sought,
+            self.session_rate,
+            (int(self.session_rate) * self.session_count_low),
+            (int(self.session_rate) * self.session_count_high),
+            self.location,
+        )
+
 
 # View
 class firstWindow:
@@ -376,7 +385,6 @@ class GoodFaithEstimateWindow:
         self.gfe_window.destroy()
 
 
-
 # Controller
 class mainApplication:
     """Controller for Good Faith Estimate creator."""
@@ -400,6 +408,10 @@ class mainApplication:
         self.window.create_gfe_button.configure(
             command=self.show_gfe_input_window
         )
+
+    def num_validator(self, number, length):
+        number_regex = re.compile(rf"^[0-9]{{{length}}}$")
+        return number_regex.match(number)
 
     def client_search(self):
         if (
@@ -460,27 +472,50 @@ class mainApplication:
 
     def enter_into_database(self):
         """Inserts data obtained from GUI into the specified database."""
-        query = """INSERT INTO clients (first_name, last_name, date_of_birth,
-        email, area_code, phone_number, street, apt_ste_bldg, city, state, zip)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        if (
+            self.num_validator(self.client_input_window.areaCodeVar.get(), "3")
+            and self.num_validator(
+                self.client_input_window.phoneNumberVar.get(), "7"
+            )
+            and self.num_validator(self.client_input_window.zipVar.get(), "5")
+        ):
+            query = """INSERT INTO clients (first_name, last_name, date_of_birth,
+            email, area_code, phone_number, street, apt_ste_bldg, city, state, zip)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
 
-        client_info_tuple = (
-            self.client_input_window.firstNameVar.get(),
-            self.client_input_window.lastNameVar.get(),
-            self.client_input_window.dobVar.get(),
-            self.client_input_window.emailVar.get(),
-            self.client_input_window.areaCodeVar.get(),
-            self.client_input_window.phoneNumberVar.get(),
-            self.client_input_window.streetAddressVar.get(),
-            self.client_input_window.aptBldgSteVar.get(),
-            self.client_input_window.cityVar.get(),
-            self.client_input_window.stateVar.get(),
-            self.client_input_window.zipVar.get(),
-        )
+            client_info_tuple = (
+                self.client_input_window.firstNameVar.get(),
+                self.client_input_window.lastNameVar.get(),
+                self.client_input_window.dobVar.get(),
+                self.client_input_window.emailVar.get(),
+                self.client_input_window.areaCodeVar.get(),
+                self.client_input_window.phoneNumberVar.get(),
+                self.client_input_window.streetAddressVar.get(),
+                self.client_input_window.aptBldgSteVar.get(),
+                self.client_input_window.cityVar.get(),
+                self.client_input_window.stateVar.get(),
+                self.client_input_window.zipVar.get(),
+            )
 
-        self.database.update(query=query, values=client_info_tuple)
+            self.database.update(query=query, values=client_info_tuple)
 
-        self.client_input_window.close()
+            self.client_input_window.close()
+
+        if not self.num_validator(
+            self.client_input_window.areaCodeVar.get(), "3"
+        ):
+            tkmb.showerror("Error", "Please enter a 3 digit areacode.")
+
+        if not self.num_validator(
+            self.client_input_window.phoneNumberVar.get(), "7"
+        ):
+            tkmb.showerror(
+                "Error",
+                "Please enter a 7 digit phone number with no spaces or other characters (e.g., '-').",
+            )
+
+        if not self.num_validator(self.client_input_window.zipVar.get(), "5"):
+            tkmb.showerror("Error", "Please enter a 5 digit zip code.")
 
     def show_gfe_input_window(self):
         """Show and populate window for Good Faith Estimate."""
@@ -495,7 +530,9 @@ class mainApplication:
             self.gfe_input_window = GoodFaithEstimateWindow(
                 results_tuple, therapist_options
             )
-            self.gfe_input_window.submit_button.configure(command=self.create_estimate)
+            self.gfe_input_window.submit_button.configure(
+                command=self.create_estimate
+            )
 
     def get_therapist_selection(self):
         query = """SELECT therapist_id, first_name, last_name, license_type,
@@ -506,24 +543,41 @@ class mainApplication:
         return self.database.search(query, therapist)
 
     def create_estimate(self):
-        self.estimate_info.therapist_info(*self.get_therapist_selection()[0])
-        self.estimate_info.estimate_info(
-            self.gfe_input_window.estimate_type_menu_var.get(),
-            self.gfe_input_window.services_sought_var.get(),
-            self.gfe_input_window.session_rate_entry.get(),
-            self.gfe_input_window.location_var.get()
+        if not self.num_validator(
+            self.gfe_input_window.session_rate_entry.get(), "1,3"
+        ):
+            tkmb.showerror(
+                "Error",
+                "Please enter the session rate using only digits and ensure the entry is 999 or below.",
+            )
+        else:
+            self.estimate_info.therapist_info(
+                *self.get_therapist_selection()[0]
+            )
+            self.estimate_info.estimate_info(
+                self.gfe_input_window.estimate_type_menu_var.get(),
+                self.gfe_input_window.services_sought_var.get(),
+                self.gfe_input_window.session_rate_entry.get(),
+                self.gfe_input_window.location_var.get(),
             )
 
-        query = """INSERT INTO estimate_details (client_id, therapist_id,
-        date_of_estimate, renewal_date, services_sought, session_rate,
-        low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?,
-        ?, ?);"""
+            query = """INSERT INTO estimate_details (client_id, therapist_id,
+            date_of_estimate, renewal_date, services_sought, session_rate,
+            low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?,
+            ?, ?);"""
 
-        self.database.update(query, self.estimate_info.values())
+            self.database.update(query, self.estimate_info.values())
 
-        gfe_document = GfeDocument("first_section.txt", "second_section.txt", self.estimate_info)
+            gfe_document = GfeDocument(
+                "first_section.txt", "second_section.txt", self.estimate_info
+            )
 
-        self.gfe_input_window.close()
+            tkmb.showinfo(
+                "GFE Created",
+                f"The Good Faith Estimate for {self.estimate_info.client_first_name} {self.estimate_info.client_last_name} was successfully created.",
+            )
+
+            self.gfe_input_window.close()
 
     def run(self):
         self.root.mainloop()
