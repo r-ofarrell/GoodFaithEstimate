@@ -11,7 +11,7 @@ class GfeDocument:
         self,
         section1: "text file",
         section2: "text file",
-        estimate_info: dict,
+        estimate_info: "Object",
         session_count_low=12,
         session_count_high=24,
     ):
@@ -37,15 +37,15 @@ class GfeDocument:
                 "Initial evaluation",
                 "90971",
                 "None",
-                f"${str(self.estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
                 "1",
-                f"${str(self.estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
             ),
             (
                 "Psycho-\ntherapy",
-                str(self.estimate_info["services_sought"]),
+                str(self.estimate_info.services_sought),
                 "None",
-                f"${str(self.estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
                 str(session_count_low),
                 f"${str(self.calculate_low_estimate())}",
             ),
@@ -57,15 +57,15 @@ class GfeDocument:
                 "Initial evaluation",
                 "90971",
                 "None",
-                f"${str(estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
                 "1",
-                f"${str(estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
             ),
             (
                 "Psycho-\ntherapy",
-                str(self.estimate_info["services_sought"]),
+                str(self.estimate_info.services_sought),
                 "None",
-                f"${str(self.estimate_info['rate'])}",
+                f"${str(self.estimate_info.session_rate)}",
                 str(self.session_count_high),
                 f"${str(self.calculate_high_estimate())}",
             ),
@@ -79,7 +79,7 @@ class GfeDocument:
         heading.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
         document.add_paragraph(self.create_section1())
         document.add_page_break()
-        if self.estimate_info["first_or_renewal"] == "Renewal":
+        if self.estimate_info.estimate_type == "Renewal":
             document.add_heading(
                 "Itemized estimate for 12 session course of treatment", level=2
             )
@@ -92,7 +92,7 @@ class GfeDocument:
                 f"\nEstimate range: ${self.calculate_low_estimate()}-"
                 f"{self.calculate_high_estimate()}"
                 "\n\nAddress where services will be provided:"
-                f"\n{address(self.estimate_info['location'])}"
+                f"\n{address(self.estimate_info.location)}"
             )
         else:
             # Takes out the initial assessment and registration fee rows when
@@ -107,13 +107,13 @@ class GfeDocument:
             self.create_estimate_table(document, high_estimate)
 
             estimate_range_low = (int(self.calculate_low_estimate())
-                    + int(estimate_info['rate']) + 25)
+                    + int(self.estimate_info.session_rate) + 25)
             estimate_range_high = (int(self.calculate_high_estimate())
-                + int(estimate_info['rate']) + 25)
+                + int(self.estimate_info.session_rate) + 25)
             document.add_paragraph(
                 f"\nEstimate range: ${estimate_range_low}-{estimate_range_high}"
                 "\n\nAddress where services will be provided:"
-                f"\n{address(self.estimate_info['location'])}"
+                f"\n{address(self.estimate_info.location)}"
             )
         runner = document.add_paragraph(
             self.create_other_sections(self.section2)
@@ -126,7 +126,7 @@ class GfeDocument:
         today = datetime.today()
 
         document.save(
-            f"{self.estimate_info['first_name']}_{self.estimate_info['last_name']}"
+            f"{self.estimate_info.client_first_name}_{self.estimate_info.client_first_name}"
             f"_{today.strftime('%Y-%m-%d')}.docx"
         )
 
@@ -138,8 +138,8 @@ class GfeDocument:
         with open(self.section1) as section1:
             for line in section1:
                 if "{full_name}" in line:
-                    client_full_name = (f"{self.estimate_info['first_name']} "
-                    f"{self.estimate_info['last_name']}")
+                    client_full_name = (f"{self.estimate_info.client_first_name} "
+                    f"{self.estimate_info.client_last_name}")
                     lines.append(
                         line.format(full_name=(client_full_name).rstrip())
                     )
@@ -147,7 +147,7 @@ class GfeDocument:
                 elif "{date_of_birth}" in line:
                     lines.append(
                         line.format(
-                            date_of_birth=self.estimate_info["date_of_birth"]
+                            date_of_birth=self.estimate_info.client_dob
                         ).rstrip()
                         + "\n"
                     )
@@ -155,35 +155,35 @@ class GfeDocument:
                 elif "{date}" in line:
                     lines.append(
                         line.format(
-                            date=self.estimate_info["date"]
-                            .strftime("%x")
+                            date=self.estimate_info.date_of_estimate.strftime("%x")
                             .rstrip()
                             + "\n"
                         )
                     )
 
                 elif "{therapist_name}" in line:
-                    if self.estimate_info["therapist_last"] == "": # Used when therapist is 'Unmatched'
+                    if self.estimate_info.therapist_last_name == "": # Used when therapist is 'Unmatched'
                         therapist_full_name = (
-                            f"{self.estimate_info['therapist_first']} "
-                            f"{self.estimate_info['therapist_last']}" # Removed ,
-                            f"{self.estimate_info['license_type']}\n"
+                            f"{self.estimate_info.therapist_first_name} "
+                            f"{self.estimate_info.therapist_last_name}" # Removed ,
+                            f"{self.estimate_info.therapist_license_type}\n"
                             f"EIN: N/A\n"
                         )
-                    elif self.estimate_info["tax_id"]:
+                    elif self.estimate_info.therapist_tax_id:
                         therapist_full_name = (
-                            f"{self.estimate_info['therapist_first']} "
-                            f"{self.estimate_info['therapist_last']}, "
-                            f"{self.estimate_info['license_type']}\n"
-                            f"EIN: {self.estimate_info['tax_id']}\n"
+                            f"{self.estimate_info.therapist_first_name} "
+                            f"{self.estimate_info.therapist_last_name}, "
+                            f"{self.estimate_info.therapist_license_type}\n"
+                            f"EIN: {self.estimate_info.therapist_tax_id}\n"
                         )
                     else:
                         therapist_full_name = (
-                            f"{self.estimate_info['therapist_first']} "
-                            f"{self.estimate_info['therapist_last']}, "
-                            f"{self.estimate_info['license_type']}\n"
+                            f"{self.estimate_info.therapist_first_name} "
+                            f"{self.estimate_info.therapist_last_name}, "
+                            f"{self.estimate_info.therapist_license_type}\n"
                             f"EIN: N/A\n"
                         )
+
                     lines.append(
                         line.format(
                             therapist_name=therapist_full_name
@@ -192,10 +192,10 @@ class GfeDocument:
                     )
 
                 elif "{npi}" in line:
-                    if self.estimate_info["npi"] == "":
+                    if self.estimate_info.therapist_npi == "":
                         therapist_npi = "N/A"
                     else:
-                        therapist_npi = self.estimate_info["npi"]
+                        therapist_npi = self.estimate_info.therapist_npi
                     lines.append(line.format(npi=therapist_npi))
 
                 elif line == "\n":
@@ -207,10 +207,10 @@ class GfeDocument:
         return "".join(lines)
 
     def calculate_low_estimate(self):
-        return int(self.estimate_info["rate"]) * self.session_count_low
+        return int(self.estimate_info.session_rate) * self.session_count_low
 
     def calculate_high_estimate(self):
-        return int(self.estimate_info["rate"]) * self.session_count_high
+        return int(self.estimate_info.session_rate) * self.session_count_high
 
     def create_other_sections(self, file: str) -> str:
         """Reads text from a file to use in sections of a Good Faith Estimate"""
@@ -253,5 +253,5 @@ class GfeDocument:
         return table
 
     def record_filename(self, date):
-        self.filename = (f"{self.estimate_info['first_name']}_{self.estimate_info['last_name']}"
+        self.filename = (f"{self.estimate_info.client_first_name}_{self.estimate_info.client_last_name}"
                          f"_{date.strftime('%Y-%m-%d')}.docx")

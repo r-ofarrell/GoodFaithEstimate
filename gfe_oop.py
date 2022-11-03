@@ -1,11 +1,17 @@
-#!/usr/bin/env python3
 
 import tkinter as tk
 import sys
 import sqlite3
 import os
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from tkinter import ttk
 from tkinter import messagebox as tkmb
+from docx import Document
+from location_of_services import address
+from document_creator import GfeDocument
+from docx2pdf import convert
+
 
 # Model
 class SearchDatabase:
@@ -16,9 +22,8 @@ class SearchDatabase:
     def resource_path(self, relative_path):
         """Get absolute path to a file/database."""
 
-        base_path = getattr(
-            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
-        )
+        base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+
 
         return os.path.join(base_path, relative_path)
 
@@ -54,6 +59,13 @@ class Therapists(SearchDatabase):
         return self.search(query, values)
 
 class EstimateInfo:
+    def __init__(self):
+        self.session_count_low = 12
+        self.session_count_high = 24
+        self.date_of_estimate = datetime.now()
+        self.months_until_renewal = relativedelta(months=+6)
+        self.renewal_date = self.date_of_estimate + self.months_until_renewal
+
     def client_info(self, client_id, first, last, dob):
         self.client_id = client_id
         self.client_first_name = first
@@ -68,11 +80,22 @@ class EstimateInfo:
         self.therapist_tax_id = tax_id
         self.therapist_npi = npi
 
-    def estimate_info(self, estimate_type, services_sought, session_rate):
+    def estimate_info(self, estimate_type, services_sought, session_rate, location):
         self.estimate_type = estimate_type
         self.services_sought = services_sought
         self.session_rate = session_rate
+        self.location = location
 
+    def values(self):
+        return (self.client_id,
+                self.therapist_id,
+                str(self.date_of_estimate),
+                str(self.renewal_date),
+                self.services_sought,
+                self.session_rate,
+                (int(self.session_rate) * self.session_count_low),
+                (int(self.session_rate) * self.session_count_high),
+                self.location)
 
 # View
 class firstWindow:
@@ -349,6 +372,10 @@ class GoodFaithEstimateWindow:
         self.submit_button = tk.Button(self.gfe_window, text="Submit")
         self.submit_button.grid(row=7, column=1)
 
+    def close(self):
+        self.gfe_window.destroy()
+
+
 
 # Controller
 class mainApplication:
@@ -470,32 +497,33 @@ class mainApplication:
             )
             self.gfe_input_window.submit_button.configure(command=self.create_estimate)
 
+    def get_therapist_selection(self):
+        query = """SELECT therapist_id, first_name, last_name, license_type,
+        tax_id, npi FROM therapists WHERE therapist_id = (?)"""
+
+        therapist = self.gfe_input_window.therapist_selection_var.get()[0]
+
+        return self.database.search(query, therapist)
+
     def create_estimate(self):
+        self.estimate_info.therapist_info(*self.get_therapist_selection()[0])
+        self.estimate_info.estimate_info(
+            self.gfe_input_window.estimate_type_menu_var.get(),
+            self.gfe_input_window.services_sought_var.get(),
+            self.gfe_input_window.session_rate_entry.get(),
+            self.gfe_input_window.location_var.get()
+            )
+
         query = """INSERT INTO estimate_details (client_id, therapist_id,
         date_of_estimate, renewal_date, services_sought, session_rate,
         low_estimate, high_estimate, location) VALUES (?, ?, ?, ?, ?, ?, ?,
         ?, ?);"""
-        date_of_estimate = datetime.now()
-        months_until_renewal = relativedelta(months=+6)
-        renewal_date = date_of_estimate + months_until_renewal
-        session_count_low = 12
-        session_count_high = 24
 
-        values_tuple = (
-            self.gfe_input_window.client_id,
-            self.therapist_data.therapist_id,
-            str(date_of_estimate),
-            str(renewal_date),
-            self.gfe_input_window.services_sought_var.get(),
-            self.gfe_input_window.session_rate_entry.get(),
-            int(self.gfe_input_window.session_rate_entry.get())
-            * session_count_low,
-            int(self.gfe_input_window.session_rate_entry.get())
-            * session_count_high,
-            self.gfe_input_window.location_var.get(),
-        )
+        self.database.update(query, self.estimate_info.values())
 
-        self.database.update(query, values_tuple)
+        gfe_document = GfeDocument("first_section.txt", "second_section.txt", self.estimate_info)
+
+        self.gfe_input_window.close()
 
     def run(self):
         self.root.mainloop()
