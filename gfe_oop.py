@@ -20,11 +20,9 @@ class SearchDatabase:
         self.conn, self.cur = self.create_connection()
 
     def resource_path(self, relative_path):
-        """Get absolute path to a file/database."""
+        """Get the absolute path to a given resource."""
 
-        base_path = getattr(
-            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
-        )
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
         return os.path.join(base_path, relative_path)
 
@@ -343,6 +341,7 @@ class GoodFaithEstimateWindow:
             self.gfe_window, textvariable=self.therapist_selection_var
         )
         self.therapist_selection["values"] = self.therapist_list
+        self.therapist_selection['state'] = 'readonly'
         self.therapist_selection.grid(row=3, column=1)
 
         self.services_sought_label = tk.Label(

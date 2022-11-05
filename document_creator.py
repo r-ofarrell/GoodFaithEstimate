@@ -1,3 +1,5 @@
+import sys
+import os
 from datetime import datetime
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx import Document
@@ -15,8 +17,8 @@ class GfeDocument:
         session_count_low=12,
         session_count_high=24,
     ):
-        self.section1 = section1
-        self.section2 = section2
+        self.section1 = self.resource_path(section1)
+        self.section2 = self.resource_path(section2)
         self.estimate_info = estimate_info
         self.session_count_low = session_count_low
         self.session_count_high = session_count_high
@@ -125,12 +127,12 @@ class GfeDocument:
 
         today = datetime.today()
 
-        document.save(
-            f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
-            f"_{today.strftime('%Y-%m-%d')}.docx"
-        )
-
         self.record_filename(today)
+
+        # Will need to change the save filepath for each setup environment
+        document.save(
+            f"/Users/RyanO/Desktop/{self.filename}"
+        )
 
     def create_section1(self) -> str:
         """Reads text from a given file and auto-populates information."""
@@ -162,11 +164,9 @@ class GfeDocument:
                     )
 
                 elif "{therapist_name}" in line:
-                    if self.estimate_info.therapist_last_name == "": # Used when therapist is 'Unmatched'
+                    if self.estimate_info.therapist_first_name == "Unmatched":
                         therapist_full_name = (
-                            f"{self.estimate_info.therapist_first_name} "
-                            f"{self.estimate_info.therapist_last_name}" # Removed ,
-                            f"{self.estimate_info.therapist_license_type}\n"
+                            f"{self.estimate_info.therapist_first_name}\n"
                             f"EIN: N/A\n"
                         )
                     elif self.estimate_info.therapist_tax_id:
@@ -255,3 +255,11 @@ class GfeDocument:
     def record_filename(self, date):
         self.filename = (f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
                          f"_{date.strftime('%Y-%m-%d')}.docx")
+
+
+    def resource_path(self, relative_path):
+        """Get the absolute path to a given resource."""
+
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+
+        return os.path.join(base_path, relative_path)
