@@ -125,9 +125,7 @@ class GfeDocument:
             "obligate you to accept the services listed above."
         ).bold = True
 
-        today = datetime.today()
-
-        self.record_filename(today)
+        self.record_filename()
 
         # Will need to change the save filepath for each setup environment
         document.save(
@@ -254,7 +252,7 @@ class GfeDocument:
 
     def record_filename(self, date):
         self.filename = (f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
-                         f"_{date.strftime('%Y-%m-%d')}.docx")
+                         f"_{self.estimate_info.date_of_estimate}.docx")
 
 
     def resource_path(self, relative_path):

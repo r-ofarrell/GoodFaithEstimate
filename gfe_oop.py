@@ -62,7 +62,7 @@ class EstimateInfo:
     def __init__(self):
         self.session_count_low = 12
         self.session_count_high = 24
-        self.date_of_estimate = datetime.now()
+        self.date_of_estimate = datetime.utcnow()
         self.months_until_renewal = relativedelta(months=+6)
         self.renewal_date = self.date_of_estimate + self.months_until_renewal
 
