@@ -483,17 +483,17 @@ class mainApplication:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
 
             client_info_tuple = (
-                self.client_input_window.firstNameVar.get(),
-                self.client_input_window.lastNameVar.get(),
-                self.client_input_window.dobVar.get(),
-                self.client_input_window.emailVar.get(),
-                self.client_input_window.areaCodeVar.get(),
-                self.client_input_window.phoneNumberVar.get(),
-                self.client_input_window.streetAddressVar.get(),
-                self.client_input_window.aptBldgSteVar.get(),
-                self.client_input_window.cityVar.get(),
-                self.client_input_window.stateVar.get(),
-                self.client_input_window.zipVar.get(),
+                self.client_input_window.firstNameVar.get().rstrip(),
+                self.client_input_window.lastNameVar.get().rstrip(),
+                self.client_input_window.dobVar.get().rstrip(),
+                self.client_input_window.emailVar.get().rstrip(),
+                self.client_input_window.areaCodeVar.get().rstrip(),
+                self.client_input_window.phoneNumberVar.get().rstrip(),
+                self.client_input_window.streetAddressVar.get().rstrip(),
+                self.client_input_window.aptBldgSteVar.get().rstrip(),
+                self.client_input_window.cityVar.get().rstrip(),
+                self.client_input_window.stateVar.get().rstrip(),
+                self.client_input_window.zipVar.get().rstrip(),
             )
 
             self.database.update(query=query, values=client_info_tuple)
