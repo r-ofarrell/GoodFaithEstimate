@@ -3,7 +3,7 @@ import sys
 import sqlite3
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from tkinter import ttk
 from tkinter import messagebox as tkmb
@@ -62,7 +62,7 @@ class EstimateInfo:
     def __init__(self):
         self.session_count_low = 12
         self.session_count_high = 24
-        self.date_of_estimate = datetime.utcnow()
+        self.date_of_estimate = datetime.now(timezone.utc)
         self.months_until_renewal = relativedelta(months=+6)
         self.renewal_date = self.date_of_estimate + self.months_until_renewal
 
