@@ -126,10 +126,11 @@ class GfeDocument:
         ).bold = True
 
         self.record_filename()
+        filepath = "/Users/RyanO/Desktop/"
 
         # Will need to change the save filepath for each setup environment
         document.save(
-            f"/Users/RyanO/Desktop/{self.filename}"
+            os.path.join(filepath, self.filename)
         )
 
     def create_section1(self) -> str:
@@ -250,9 +251,9 @@ class GfeDocument:
 
         return table
 
-    def record_filename(self, date):
+    def record_filename(self):
         self.filename = (f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}"
-                         f"_{self.estimate_info.date_of_estimate}.docx")
+                         f"_{self.estimate_info.date_of_estimate.strftime('%Y-%m-%d-%H-%M-%S')}.docx")
 
 
     def resource_path(self, relative_path):

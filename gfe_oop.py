@@ -10,7 +10,7 @@ from tkinter import messagebox as tkmb
 from docx import Document
 from location_of_services import address
 from document_creator import GfeDocument
-from docx2pdf import convert
+# from docx2pdf import convert
 
 
 # Model
