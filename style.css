@@ -1,6 +1,7 @@
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
+    font-size: 10px;
 }
 
 /* Typography */
@@ -11,8 +12,12 @@ h1 {
 }
 
 h2 {
-    font-size: 1.25em;
+    font-size: 1.5em;
     text-align: center;
+}
+
+p {
+    font-size: 1.25rem;
 }
 
 .estimate-total {
@@ -61,11 +66,13 @@ table {
 }
 
 tr th {
+    font-size: 10px;
     text-align: center;
     padding: .5em 3em;
 }
 
 tr td {
+    font-size: 10px;
     text-align: center;
     padding: 1.5em 3em;
 }
