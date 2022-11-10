@@ -9,9 +9,6 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from tkinter import ttk
 from tkinter import messagebox as tkmb
-from docx import Document
-from location_of_services import address
-from document_creator import GfeDocument
 
 # from docx2pdf import convert
 
@@ -230,6 +227,20 @@ class EstimateInfo:
         self.location = location
         self.low_estimate = int(self.session_rate) * self.session_count_low
         self.high_estimate = int(self.session_rate) * self.session_count_high
+
+        self.address()
+
+    def address(self):
+        '''Returns formatted address for where services will be provided.'''
+
+        if self.location == 'Mount Pleasant':
+            self.location_full = ['890 Johnnie Dodds Blvd.', 'Bldg. 3 Ste. A',
+            'Mount Pleasant, S.C. 29464']
+        elif self.location == 'North Charleston':
+            self.location_full = ['9263 Medical Plaza Dr.', 'Ste. B',
+            'North Charleston, S.C. 29406']
+        else:
+            self.location_full = 'Telehealth'
 
     def values(self):
         return (
@@ -727,7 +738,7 @@ class mainApplication:
             css = "style.css"
             pdfkit.from_file(
                 f"{self.filename}",
-                f"{self.filename[:-4]}.pdf",
+                f"/Users/RyanO/Desktop/{self.filename[:-4]}.pdf",
                 options={"enable-local-file-access": ""},
                 css=css,
             )

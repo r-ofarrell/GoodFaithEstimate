@@ -23,7 +23,7 @@
             <p><strong>NPI:</strong> {{ info.therapist_npi }}</p>
             <p><strong>Date of estimate:</strong> {{ info.date_of_estimate_formatted }}</p>
         </header>
-        <div>
+        <div class="section1">
             {% for line in layout.first_section %}
             <p>{{ line }}</p>
             {% endfor %}
@@ -98,8 +98,14 @@
             {% else %}
             <p class="estimate-total">Estimate Range: ${{ info.low_estimate + info.session_rate_int + 25 }}-{{ info.high_estimate + info.session_rate_int + 25 }}
             {% endif %}
+            <div class="address">
+                <p><strong>Address where services will be provided:</strong></p>
+                {% for line in info.location_full %}
+                <p>{{ line }}</p>
+                {% endfor %}
+            </div>
         </div>
-        <div>
+        <div class="section2">
             {% for line in layout.second_section %}
             <p>{{ line }}</p>
             {% endfor %}

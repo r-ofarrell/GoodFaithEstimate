@@ -19,19 +19,38 @@ h2 {
     font-weight: 700;
 }
 
-p:last-of-type {
+.section1 p:last-of-type,
+.section2 p:last-of-type {
     font-weight: 700;
 }
 
 /* Layout */
 
-header p {
+header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info,
+.address {
+    display: flex;
+    flex-direction: column;
+}
+
+header p,
+.address p {
     margin: 0 0 .25em 0;
+}
+
+.address p:last-of-type {
+    margin-bottom: .5em;
 }
 
 /* Tables */
 
-table, th, td {
+table,
+th,
+td {
     border: 2px solid black;
     border-collapse: collapse;
 }
