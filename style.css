@@ -1,0 +1,52 @@
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Typography */
+
+h1 {
+    font-size: 2rem;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.25em;
+    text-align: center;
+}
+
+.estimate-total {
+    font-weight: 700;
+}
+
+p:last-of-type {
+    font-weight: 700;
+}
+
+/* Layout */
+
+header p {
+    margin: 0 0 .25em 0;
+}
+
+/* Tables */
+
+table, th, td {
+    border: 2px solid black;
+    border-collapse: collapse;
+}
+
+table {
+    width: 90%;
+    margin: 0 auto;
+}
+
+tr th {
+    text-align: center;
+    padding: .5em 3em;
+}
+
+tr td {
+    text-align: center;
+    padding: 1.5em 3em;
+}

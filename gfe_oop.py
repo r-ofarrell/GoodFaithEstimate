@@ -3,6 +3,8 @@ import sys
 import sqlite3
 import os
 import re
+import pdfkit
+from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from tkinter import ttk
@@ -10,6 +12,7 @@ from tkinter import messagebox as tkmb
 from docx import Document
 from location_of_services import address
 from document_creator import GfeDocument
+
 # from docx2pdf import convert
 
 
@@ -22,7 +25,9 @@ class SearchDatabase:
     def resource_path(self, relative_path):
         """Get the absolute path to a given resource."""
 
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        base_path = getattr(
+            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+        )
 
         return os.path.join(base_path, relative_path)
 
@@ -45,6 +50,125 @@ class SearchDatabase:
         self.conn.close()
 
 
+class HtmlCreator:
+    def __init__(self):
+        self.registration_fee = 25
+        self.registration_row = [
+            "Registration fee",
+            "None",
+            "None",
+            f"${self.registration_fee}",
+            1,
+            f"${self.registration_fee}",
+        ]
+        self.intake = "Initial assessment"
+        self.intake_code = "90791"
+        self.psychotherapy = "Psychotherapy"
+        self.first_section = self.create_text_sections("first_section.txt")
+        self.second_section = self.create_text_sections("second_section.txt")
+
+    def create_table_row(self, service, service_code, rate, quantity):
+        return [
+            service,
+            service_code,
+            "None",
+            f"${rate}",
+            f"{quantity}",
+            f"${int(rate) * quantity}",
+        ]
+
+    def create_table(self, other):
+        if other.estimate_type == "Renewal":
+            self.create_renewal_table(other, "low")
+            self.create_renewal_table(other, "high")
+
+        else:
+            self.create_initial_estimate_table(other, "low")
+            self.create_initial_estimate_table(other, "high")
+
+    def create_initial_rows(self, other):
+        estimate = [self.registration_row]
+
+        estimate.append(
+            self.create_table_row(
+                self.intake, self.intake_code, other.session_rate, 1
+            )
+        )
+
+        return estimate
+
+    def create_initial_estimate_table(self, other, high_low):
+        estimate = self.create_initial_rows(other)
+
+        if high_low == "low":
+            estimate.append(
+                self.create_table_row(
+                    self.psychotherapy,
+                    other.services_sought,
+                    other.session_rate,
+                    other.session_count_low,
+                )
+            )
+
+            self.initial_table_low = estimate
+
+        elif high_low == "high":
+            estimate.append(
+                self.create_table_row(
+                    self.psychotherapy,
+                    other.services_sought,
+                    other.session_rate,
+                    other.session_count_high,
+                )
+            )
+
+            self.initial_table_high = estimate
+
+    def create_renewal_table(self, other, high_low):
+        estimate = []
+        if high_low == "low":
+            estimate.append(
+                self.create_table_row(
+                    self.psychotherapy,
+                    other.services_sought,
+                    other.session_rate,
+                    other.session_count_low,
+                )
+            )
+
+            self.renewal_table_low = estimate
+
+        elif high_low == "high":
+            estimate.append(
+                self.create_table_row(
+                    self.psychotherapy,
+                    other.services_sought,
+                    other.session_rate,
+                    other.session_count_high,
+                )
+            )
+
+            self.renewal_table_high = estimate
+
+    def create_text_sections(self, file: str) -> str:
+        """Reads text from a file to use in sections of a Good Faith Estimate"""
+        section = []
+        hold = []
+        lines = []
+        with open(file) as text:
+            for line in text:
+                section.append(line)
+
+        for num, line in enumerate(section):
+            if line == "\n" or num == (len(section) - 1):
+                lines.append("".join(hold))
+                hold = []
+            else:
+                hold.append(line.rstrip() + " ")
+
+        return lines
+
+
 class Therapists(SearchDatabase):
     def __init__(self, database):
         super().__init__(database)
@@ -63,6 +187,9 @@ class EstimateInfo:
         self.session_count_low = 12
         self.session_count_high = 24
         self.date_of_estimate = datetime.now(timezone.utc)
+        self.date_of_estimate_formatted = self.date_of_estimate.strftime(
+            "%Y-%m-%d"
+        )
         self.months_until_renewal = relativedelta(months=+6)
         self.renewal_date = self.date_of_estimate + self.months_until_renewal
 
@@ -71,6 +198,10 @@ class EstimateInfo:
         self.client_first_name = first
         self.client_last_name = last
         self.client_dob = dob
+
+        self.client_full = f"""
+        {self.client_first_name} {self.client_last_name}
+        """
 
     def therapist_info(
         self, therapist_id, first, last, license_type, tax_id, npi
@@ -82,13 +213,23 @@ class EstimateInfo:
         self.therapist_tax_id = tax_id
         self.therapist_npi = npi
 
+        if self.therapist_first_name != "Unmatched":
+            self.therapist_full = f"""
+            {self.therapist_first_name} {self.therapist_last_name}, {self.therapist_license_type}
+            """
+        else:
+            self.therapist_full = "Unmatched"
+
     def estimate_info(
         self, estimate_type, services_sought, session_rate, location
     ):
         self.estimate_type = estimate_type
         self.services_sought = services_sought
         self.session_rate = session_rate
+        self.session_rate_int = int(session_rate)
         self.location = location
+        self.low_estimate = int(self.session_rate) * self.session_count_low
+        self.high_estimate = int(self.session_rate) * self.session_count_high
 
     def values(self):
         return (
@@ -341,7 +482,7 @@ class GoodFaithEstimateWindow:
             self.gfe_window, textvariable=self.therapist_selection_var
         )
         self.therapist_selection["values"] = self.therapist_list
-        self.therapist_selection['state'] = 'readonly'
+        self.therapist_selection["state"] = "readonly"
         self.therapist_selection.grid(row=3, column=1)
 
         self.services_sought_label = tk.Label(
@@ -397,6 +538,7 @@ class mainApplication:
         self.database = SearchDatabase("gfe_db.db")
         self.therapist_data = Therapists("gfe_db.db")
         self.estimate_info = EstimateInfo()
+        self.layout = HtmlCreator()
 
         self.window.button.configure(
             command=lambda: self.display_search_results(self.client_search())
@@ -567,9 +709,32 @@ class mainApplication:
 
             self.database.update(query, self.estimate_info.values())
 
-            gfe_document = GfeDocument(
-                "first_section.txt", "second_section.txt", self.estimate_info
+            self.filename = f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}_{self.estimate_info.date_of_estimate.strftime('%Y-%m-%d-%H-%M-%S')}.html"
+
+            environment = Environment(loader=FileSystemLoader("templates/"))
+            template = environment.get_template("html_prototype.html")
+
+            self.layout.create_initial_rows(self.estimate_info)
+            self.layout.create_table(self.estimate_info)
+
+            with open(self.filename, mode="w", encoding="utf-8") as test:
+                test.write(
+                    template.render(
+                        info=self.estimate_info, layout=self.layout
+                    )
+                )
+
+            css = "style.css"
+            pdfkit.from_file(
+                f"{self.filename}",
+                f"{self.filename[:-4]}.pdf",
+                options={"enable-local-file-access": ""},
+                css=css,
             )
+
+            # gfe_document = GfeDocument(
+            #     "first_section.txt", "second_section.txt", self.estimate_info
+            # )
 
             # convert(gfe_document.filename)
 

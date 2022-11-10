@@ -1,0 +1,108 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Good Faith Estimate</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://api.fonts.coollabs.io">
+        <link rel="preconnect" href="https://api.fonts.coollabs.io" crossorigin>
+        <link href="https://api.fonts.coollabs.io/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    </head>
+
+    <body>
+        <h1>Life Resources Good Faith Estimate</h1>
+        <header>
+            <p><strong>Client name:</strong> {{ info.client_full }}</p>
+            <p><strong>Date of birth:</strong> {{ info.client_dob }}</p>
+            <p><strong>Therapist providing services:</strong> {{ info.therapist_full }}</p>
+            <p><strong>EIN:</strong> {{ info.therapist_tax_id }}</p>
+            <p><strong>NPI:</strong> {{ info.therapist_npi }}</p>
+            <p><strong>Date of estimate:</strong> {{ info.date_of_estimate_formatted }}</p>
+        </header>
+        <div>
+            {% for line in layout.first_section %}
+            <p>{{ line }}</p>
+            {% endfor %}
+        </div>
+        <div>
+            <h2>Itemized estimate for 12 session course of treatment</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Service code</th>
+                        <th>Diagnosis</th>
+                        <th>Cost</th>
+                        <th>Quantity</th>
+                        <th>Estimate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if info.estimate_type == "Renewal" %}
+                        {% for row in layout.renewal_table_low %}
+                    <tr>
+                        {% for item in row %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                        {% endfor %}
+                    {% else %}
+                        {% for row in layout.initial_table_low %}
+                    <tr>
+                        {% for item in row %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+            <h2>Itemized estimate for 24 session course of treatment</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Service code</th>
+                        <th>Diagnosis</th>
+                        <th>Cost</th>
+                        <th>Quantity</th>
+                        <th>Estimate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if info.estimate_type == "Renewal" %}
+                        {% for row in layout.renewal_table_high %}
+                    <tr>
+                        {% for item in row %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                        {% endfor %}
+                    {% else %}
+                        {% for row in layout.initial_table_high %}
+                    <tr>
+                        {% for item in row %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+            {% if info.estimate_type == "Renewal" %}
+            <p class="estimate-total">Estimate Range: ${{ info.low_estimate }}-{{ info.high_estimate }}
+            {% else %}
+            <p class="estimate-total">Estimate Range: ${{ info.low_estimate + info.session_rate_int + 25 }}-{{ info.high_estimate + info.session_rate_int + 25 }}
+            {% endif %}
+        </div>
+        <div>
+            {% for line in layout.second_section %}
+            <p>{{ line }}</p>
+            {% endfor %}
+        </div>
+    </body>
+</html>

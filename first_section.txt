@@ -1,8 +1,3 @@
-Client name: {full_name}
-Date of birth: {date_of_birth}
-Therapist providing services: {therapist_name}
-NPI: {npi}
-Date of Estimate: {date}
 This form provides an estimate of the costs of mental health services received
 through Life Resources. The clinical needs and goals of clients at Life
 Resources vary greatly and as such, an estimate for mental health services will,
@@ -31,3 +26,4 @@ incurred due to late cancellations and/or no-shows.
 
 Contact: If you have questions about this estimate, please contact the Life
 Resources Intake Coordinator at 843-884-3888.
+
