@@ -1,15 +1,15 @@
-import tkinter as tk
-import sys
-import sqlite3
 import os
 import re
-import pdfkit
-from jinja2 import Environment, FileSystemLoader
+import sqlite3
+import sys
+import tkinter as tk
 from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
-from tkinter import ttk
 from tkinter import messagebox as tkmb
+from tkinter import ttk
 
+import pdfkit
+from dateutil.relativedelta import relativedelta
+from jinja2 import Environment, FileSystemLoader
 
 
 # Model
@@ -62,6 +62,11 @@ class HtmlCreator:
         self.psychotherapy = "Psychotherapy"
         self.first_section = self.create_text_sections("first_section.txt")
         self.second_section = self.create_text_sections("second_section.txt")
+
+        self.initial_table_low = None
+        self.initial_table_high = None
+        self.renewal_table_low = None
+        self.renewal_table_high = None
 
     def create_table_row(self, service, service_code, rate, quantity):
         return [
@@ -188,6 +193,28 @@ class EstimateInfo:
         )
         self.months_until_renewal = relativedelta(months=+6)
         self.renewal_date = self.date_of_estimate + self.months_until_renewal
+
+        self.client_id = None
+        self.client_first_name = None
+        self.client_last_name = None
+        self.client_dob = None
+        self.client_full = None
+
+        self.therapist_id = None
+        self.therapist_first_name = None
+        self.therapist_last_name = None
+        self.therapist_license_type = None
+        self.therapist_tax_id = None
+        self.therapist_npi = None
+        self.therapist_full = None
+
+        self.estimate_type = None
+        self.services_sought = None
+        self.session_rate = None
+        self.session_rate_int = None
+        self.location = None
+        self.low_estimate = None
+        self.high_estimate = None
 
     def client_info(self, client_id, first, last, dob):
         self.client_id = client_id
