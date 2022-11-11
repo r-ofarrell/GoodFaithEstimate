@@ -738,7 +738,7 @@ class mainApplication:
             css = "style.css"
             pdfkit.from_file(
                 f"{self.filename}",
-                f"/Users/RyanO/Desktop/{self.filename[:-4]}.pdf",
+                f"/Users/RyanO/Desktop/{self.filename[:-5]}.pdf",
                 options={"enable-local-file-access": ""},
                 css=css,
             )
