@@ -1,7 +1,7 @@
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
-    font-size: 10px;
+    font-family: 'Arial', sans-serif;
+    font-size: 22px;
 }
 
 /* Typography */
@@ -12,11 +12,13 @@ h1 {
 }
 
 h2 {
-    font-size: 1.5em;
+    font-size: 1.5rem;
     text-align: center;
 }
 
-p {
+p,
+tr th,
+tr td {
     font-size: 1.25rem;
 }
 
@@ -66,13 +68,11 @@ table {
 }
 
 tr th {
-    font-size: 10px;
     text-align: center;
-    padding: .5em 3em;
+    padding: .5em 2em;
 }
 
 tr td {
-    font-size: 10px;
     text-align: center;
-    padding: 1.5em 3em;
+    padding: .5em 2em;
 }
