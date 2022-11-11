@@ -10,7 +10,6 @@ from dateutil.relativedelta import relativedelta
 from tkinter import ttk
 from tkinter import messagebox as tkmb
 
-# from docx2pdf import convert
 
 
 # Model
@@ -306,7 +305,7 @@ class firstWindow:
         self.create_gfe_label.grid(row=4, column=1)
         self.create_gfe_button = tk.Button(
             self.frame, text="Ok"
-        )  # Add command to button
+        )
         self.create_gfe_button.grid(row=5, column=1, ipadx=10)
 
         self.frame.grid(row=0, column=0)
