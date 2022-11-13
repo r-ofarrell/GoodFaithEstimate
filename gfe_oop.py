@@ -28,21 +28,25 @@ class SearchDatabase:
         return os.path.join(base_path, relative_path)
 
     def create_connection(self):
+        """Creates connection to a specified database."""
         conn = sqlite3.connect(self.database)
         cur = conn.cursor()
 
         return (conn, cur)
 
     def search(self, query, values):
+        """Searches database."""
         self.cur.execute(query, values)
         results = self.cur.fetchall()
         return results
 
     def update(self, query, values):
+        """Updates database."""
         self.cur.execute(query, values)
         self.conn.commit()
 
     def close(self):
+        """Closes connection to database."""
         self.conn.close()
 
 
@@ -152,7 +156,7 @@ class HtmlCreator:
             self.renewal_table_high = estimate
 
     def create_text_sections(self, file: str) -> str:
-        """Reads text from a file to use in sections of a Good Faith Estimate"""
+        """Reads text from a file and uses to populate sections of a Good Faith Estimate"""
         section = []
         hold = []
         lines = []
@@ -170,29 +174,14 @@ class HtmlCreator:
         return lines
 
 
-class Therapists(SearchDatabase):
-    def __init__(self, database):
-        super().__init__(database)
-        self.therapists = self.therapist_list()
-
-    def therapist_list(self):
-        query = """SELECT therapist_id, first_name, last_name, license_type,
-        tax_id, npi FROM therapists WHERE therapist_status = :value"""
-        values = {"value": 1}
-
-        return self.search(query, values)
-
-
 class EstimateInfo:
     def __init__(self):
         self.session_count_low = 12
         self.session_count_high = 24
-        self.date_of_estimate = datetime.now(timezone.utc)
-        self.date_of_estimate_formatted = self.date_of_estimate.strftime(
-            "%Y-%m-%d"
-        )
-        self.months_until_renewal = relativedelta(months=+6)
-        self.renewal_date = self.date_of_estimate + self.months_until_renewal
+        self.date_of_estimate = None
+        self.date_of_estimate_formatted = None
+        self.months_until_renewal = None
+        self.renewal_date = None
 
         self.client_id = None
         self.client_first_name = None
@@ -246,6 +235,14 @@ class EstimateInfo:
     def estimate_info(
         self, estimate_type, services_sought, session_rate, location
     ):
+
+        self.date_of_estimate = datetime.now(timezone.utc)
+        self.date_of_estimate_formatted = self.date_of_estimate.strftime(
+            "%m-%d-%Y"
+        )
+        self.months_until_renewal = relativedelta(months=+6)
+        self.renewal_date = self.date_of_estimate + self.months_until_renewal
+
         self.estimate_type = estimate_type
         self.services_sought = services_sought
         self.session_rate = session_rate
@@ -257,16 +254,22 @@ class EstimateInfo:
         self.address()
 
     def address(self):
-        '''Returns formatted address for where services will be provided.'''
+        """Returns formatted address for where services will be provided."""
 
-        if self.location == 'Mount Pleasant':
-            self.location_full = ['890 Johnnie Dodds Blvd.', 'Bldg. 3 Ste. A',
-            'Mount Pleasant, S.C. 29464']
-        elif self.location == 'North Charleston':
-            self.location_full = ['9263 Medical Plaza Dr.', 'Ste. B',
-            'North Charleston, S.C. 29406']
+        if self.location == "Mount Pleasant":
+            self.location_full = (
+                "890 Johnnie Dodds Blvd.",
+                "Bldg. 3 Ste. A",
+                "Mount Pleasant, S.C. 29464",
+            )
+        elif self.location == "North Charleston":
+            self.location_full = (
+                "9263 Medical Plaza Dr.",
+                "Ste. B",
+                "North Charleston, S.C. 29406",
+            )
         else:
-            self.location_full = 'Telehealth'
+            self.location_full = ("Telehealth",)
 
     def values(self):
         return (
@@ -330,9 +333,7 @@ class firstWindow:
             self.frame, text="Create Good Faith Estimate for selected client?"
         )
         self.create_gfe_label.grid(row=4, column=1)
-        self.create_gfe_button = tk.Button(
-            self.frame, text="Ok"
-        )
+        self.create_gfe_button = tk.Button(self.frame, text="Ok")
         self.create_gfe_button.grid(row=5, column=1, ipadx=10)
 
         self.frame.grid(row=0, column=0)
@@ -573,7 +574,7 @@ class mainApplication:
         self.root.columnconfigure(0, weight=1)
         self.window = firstWindow(self.root)
         self.database = SearchDatabase("gfe_db.db")
-        self.therapist_data = Therapists("gfe_db.db")
+        self.therapists = self.active_therapists()  # Therapists("gfe_db.db")
         self.estimate_info = EstimateInfo()
         self.layout = HtmlCreator()
 
@@ -588,10 +589,12 @@ class mainApplication:
         )
 
     def num_validator(self, number, length):
+        """Validates whether input is a specified length integer."""
         number_regex = re.compile(rf"^[0-9]{{{length}}}$")
         return number_regex.match(number)
 
     def client_search(self):
+        """Search for client in database using first name, last name, or both."""
         if (
             self.window.first_name_entry.get()
             and self.window.last_name_entry.get()
@@ -630,6 +633,7 @@ class mainApplication:
             self.window.results_combobox.set("")
 
     def display_search_results(self, results):
+        """Populates combobox with search results, otherwise asks whether user wants to input new client."""
         if results:
             self.window.results_combobox["values"] = results
 
@@ -643,10 +647,21 @@ class mainApplication:
                 self.show_client_input_window()
 
     def show_client_input_window(self):
+        """Opens window to input a new client's information."""
         self.client_input_window = clientInfoInput()
         self.client_input_window.enter_button.configure(
             command=self.enter_into_database
         )
+
+    def active_therapists(self):
+        """Pulls active therapists from database."""
+        query = """SELECT therapist_id, first_name, last_name, license_type,
+        tax_id, npi FROM therapists WHERE therapist_status = :value"""
+        values = {"value": 1}
+
+        active_therapists = self.database.search(query, values)
+
+        return active_therapists
 
     def enter_into_database(self):
         """Inserts data obtained from GUI into the specified database."""
@@ -703,7 +718,7 @@ class mainApplication:
             )
             self.estimate_info.client_info(*results_tuple)
             therapist_options = []
-            for therapist in self.therapist_data.therapists:
+            for therapist in self.therapists:
                 therapist_options.append(therapist[0:4])
             self.gfe_input_window = GoodFaithEstimateWindow(
                 results_tuple, therapist_options
@@ -713,12 +728,13 @@ class mainApplication:
             )
 
     def get_therapist_selection(self):
+        """For the therapist selected in estimate window, pull his/her information from database."""
         query = """SELECT therapist_id, first_name, last_name, license_type,
         tax_id, npi FROM therapists WHERE therapist_id = (?)"""
 
-        therapist = self.gfe_input_window.therapist_selection_var.get()[0]
+        therapist = self.gfe_input_window.therapist_selection_var.get().split()
 
-        return self.database.search(query, therapist)
+        return self.database.search(query, (therapist[0],))
 
     def create_estimate(self):
         if not self.num_validator(
@@ -764,7 +780,7 @@ class mainApplication:
             css = "style.css"
             pdfkit.from_file(
                 f"{self.filename}",
-                f"/Users/RyanO/Desktop/{self.filename[:-5]}.pdf",
+                f"{self.filename[:-5]}.pdf",
                 options={"enable-local-file-access": ""},
                 css=css,
             )

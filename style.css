@@ -2,6 +2,7 @@ body {
     margin: 0;
     font-family: 'Arial', sans-serif;
     font-size: 22px;
+    line-height: 1.6;
 }
 
 /* Typography */
@@ -12,14 +13,14 @@ h1 {
 }
 
 h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     text-align: center;
 }
 
 p,
 tr th,
 tr td {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
 }
 
 .estimate-total {
@@ -27,8 +28,12 @@ tr td {
 }
 
 .section1 p:last-of-type,
-.section2 p:last-of-type {
+.section2 p {
     font-weight: 700;
+}
+
+.section2 p:nth-of-type(1) {
+    font-weight: 400;
 }
 
 /* Layout */
@@ -36,6 +41,7 @@ tr td {
 header {
     display: flex;
     justify-content: space-between;
+    line-height: 1.0;
 }
 
 .info,

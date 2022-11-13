@@ -13,9 +13,13 @@
     <body>
         <h1>Life Resources Good Faith Estimate</h1>
         <header>
-            <p><strong>Client name:</strong> {{ info.client_full }}</p>
+            <p><strong>Client name:</strong> {{ info.client_first_name }} {{ info.client_last_name }}</p>
             <p><strong>Date of birth:</strong> {{ info.client_dob }}</p>
-            <p><strong>Therapist providing services:</strong> {{ info.therapist_full }}</p>
+            <p><strong>Therapist providing services:</strong>
+                {% if info.therapist_first_name == "Unmatched" %} {{ info.therapist_first_name }}</p>
+                {% else %} {{ info.therapist_first_name }} {{info.therapist_last_name}}, {{ info.therapist_license_type }}</p>
+                {% endif %}
+
             <p><strong>EIN:</strong> {{ info.therapist_tax_id }}</p>
             <p><strong>NPI:</strong> {{ info.therapist_npi }}</p>
             <p><strong>Date of estimate:</strong> {{ info.date_of_estimate_formatted }}</p>
@@ -24,6 +28,12 @@
             {% for line in layout.first_section %}
             <p>{{ line }}</p>
             {% endfor %}
+        </div>
+       <div class="section2">
+            {% for line in layout.second_section %}
+            <p>{{ line }}</p>
+            {% endfor %}
+            <br>
         </div>
         <div>
             <h2>Itemized estimate for 12 session course of treatment</h2>
@@ -102,10 +112,6 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="section2">
-            {% for line in layout.second_section %}
-            <p>{{ line }}</p>
-            {% endfor %}
-        </div>
+
     </body>
 </html>
