@@ -21,11 +21,13 @@ class SearchDatabase:
     def resource_path(self, relative_path):
         """Get the absolute path to a given resource."""
 
-        base_path = getattr(
-            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(
+            os.environ.get(
+            "_MEIPASS2",
+            os.path.abspath(".")
+            ),
+            relative_path
         )
-
-        return os.path.join(base_path, relative_path)
 
     def create_connection(self):
         """Creates connection to a specified database."""
@@ -211,10 +213,6 @@ class EstimateInfo:
         self.client_last_name = last
         self.client_dob = dob
 
-        self.client_full = f"""
-        {self.client_first_name} {self.client_last_name}
-        """
-
     def therapist_info(
         self, therapist_id, first, last, license_type, tax_id, npi
     ):
@@ -224,13 +222,6 @@ class EstimateInfo:
         self.therapist_license_type = license_type
         self.therapist_tax_id = tax_id
         self.therapist_npi = npi
-
-        if self.therapist_first_name != "Unmatched":
-            self.therapist_full = f"""
-            {self.therapist_first_name} {self.therapist_last_name}, {self.therapist_license_type}
-            """
-        else:
-            self.therapist_full = "Unmatched"
 
     def estimate_info(
         self, estimate_type, services_sought, session_rate, location
@@ -574,9 +565,10 @@ class mainApplication:
         self.root.columnconfigure(0, weight=1)
         self.window = firstWindow(self.root)
         self.database = SearchDatabase("gfe_db.db")
-        self.therapists = self.active_therapists()  # Therapists("gfe_db.db")
+        self.therapists = self.active_therapists()
         self.estimate_info = EstimateInfo()
         self.layout = HtmlCreator()
+        self.filename = None
 
         self.window.button.configure(
             command=lambda: self.display_search_results(self.client_search())
@@ -762,35 +754,53 @@ class mainApplication:
 
             self.database.update(query, self.estimate_info.values())
 
-            self.filename = f"{self.estimate_info.client_last_name}_{self.estimate_info.client_first_name}_{self.estimate_info.date_of_estimate.strftime('%Y-%m-%d-%H-%M-%S')}.html"
+            self.filename = (f"{self.estimate_info.client_last_name}_"
+                            f"{self.estimate_info.client_first_name}_"
+                            f"{self.estimate_info.date_of_estimate.strftime('%Y-%m-%d-%H-%M-%S')}.html")
 
-            environment = Environment(loader=FileSystemLoader("templates/"))
-            template = environment.get_template("html_prototype.html")
-
-            self.layout.create_initial_rows(self.estimate_info)
-            self.layout.create_table(self.estimate_info)
-
-            with open(self.filename, mode="w", encoding="utf-8") as test:
-                test.write(
-                    template.render(
-                        info=self.estimate_info, layout=self.layout
-                    )
-                )
-
-            css = "style.css"
-            pdfkit.from_file(
-                f"{self.filename}",
-                f"{self.filename[:-5]}.pdf",
-                options={"enable-local-file-access": ""},
-                css=css,
-            )
+            self.create_html()
+            self.convert_to_pdf()
 
             tkmb.showinfo(
                 "GFE Created",
                 f"The Good Faith Estimate for {self.estimate_info.client_first_name} {self.estimate_info.client_last_name} was successfully created.",
             )
 
+            self.remove_html(self.filename)
+
             self.gfe_input_window.close()
+
+    def remove_html(self, file):
+        """Removes html file."""
+        if os.path.exists(file):
+            os.remove(file)
+        else:
+            raise Exception("File does not exist.")
+
+    def create_html(self):
+        """Creates html file that will be converted to pdf."""
+        environment = Environment(loader=FileSystemLoader("templates/"))
+        template = environment.get_template("html_prototype.html")
+
+        self.layout.create_initial_rows(self.estimate_info)
+        self.layout.create_table(self.estimate_info)
+
+        with open(self.filename, mode="w", encoding="utf-8") as html:
+            html.write(
+                template.render(
+                    info=self.estimate_info, layout=self.layout
+                )
+            )
+
+    def convert_to_pdf(self):
+        """Converts html to pdf."""
+        css = "style.css"
+        pdfkit.from_file(
+            f"{self.filename}",
+            f"{self.filename[:-5]}.pdf",
+            options={"enable-local-file-access": ""},
+            css=css,
+        )
 
     def run(self):
         self.root.mainloop()
