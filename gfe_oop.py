@@ -176,6 +176,29 @@ class HtmlCreator:
         return lines
 
 
+class TableRow:
+
+    def __init__(self, service_type="Registration", service_code="None", service_fee=25, quantity=1):
+        self.service_type = service_type
+        self.service_fee = service_fee
+        self.quantity = quantity
+        self.service_code = service_code
+        self.diagnosis = "None"
+
+    def __str__(self):
+        return f"{self.service_type}"
+
+    def row(self):
+        return (
+            self.__str__(),
+            self.service_code,
+            self.diagnosis,
+            f"${self.service_fee}",
+            self.quantity,
+            f"${self.service_fee}"
+        )
+
+
 class EstimateInfo:
     def __init__(self):
         self.session_count_low = 12
@@ -189,7 +212,6 @@ class EstimateInfo:
         self.client_first_name = None
         self.client_last_name = None
         self.client_dob = None
-        self.client_full = None
 
         self.therapist_id = None
         self.therapist_first_name = None
@@ -197,7 +219,6 @@ class EstimateInfo:
         self.therapist_license_type = None
         self.therapist_tax_id = None
         self.therapist_npi = None
-        self.therapist_full = None
 
         self.estimate_type = None
         self.services_sought = None
@@ -604,7 +625,7 @@ class mainApplication:
 
             return self.database.search(query=query, values=search_parameters)
 
-        elif (
+        if (
             self.window.first_name_entry.get()
             or self.window.last_name_entry.get()
         ):
@@ -621,11 +642,12 @@ class mainApplication:
 
             return self.database.search(query=query, values=search_parameters)
 
-        else:
-            self.window.results_combobox.set("")
+        return None
+
 
     def display_search_results(self, results):
-        """Populates combobox with search results, otherwise asks whether user wants to input new client."""
+        """Populates combobox with search results.
+        Otherwise asks whether user wants to input new client."""
         if results:
             self.window.results_combobox["values"] = results
 
@@ -795,9 +817,12 @@ class mainApplication:
     def convert_to_pdf(self):
         """Converts html to pdf."""
         css = "style.css"
+        # filepath = folder you want to save pdf file to
+        pdf_file =  f"{self.filename[:-5]}.pdf"
+        # config = filepath to wkhtmltopdf executable (needed on Windows systems)
         pdfkit.from_file(
             f"{self.filename}",
-            f"{self.filename[:-5]}.pdf",
+            pdf_file,
             options={"enable-local-file-access": ""},
             css=css,
         )
