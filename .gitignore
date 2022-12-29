@@ -1,0 +1,8 @@
+__pycache__
+.__pytest_cache
+venv
+
+# Ignore all database files
+*.db
+
+user_story.md
