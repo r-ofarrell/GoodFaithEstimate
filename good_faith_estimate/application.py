@@ -3,7 +3,11 @@ import tkinter as tk
 from tkinter import Toplevel, messagebox as tkmb
 from tkinter import ttk
 from pathlib import Path
-from dataclasses import dataclass, asdict, astuple, field
+from datetime import datetime, timezone
+from dataclasses import dataclass, asdict, field
+import pdfkit
+from dateutil.relativedelta import relativedelta
+from jinja2 import Environment, FileSystemLoader
 
 from markupsafe import re
 import models
@@ -31,6 +35,9 @@ class Client:
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
+    def last_first(self):
+        return f"{self.last_name}_{self.first_name}"
+
     def to_dict(self):
         return asdict(self)
 
@@ -52,10 +59,10 @@ class Therapist:
     npi: str
 
     def full_name(self):
-        return f"{self.first} {self.last}"
+        return f"{self.first_name} {self.last_name}"
 
     def full_name_and_license(self):
-        return f"{self.first} {self.last}, {self.license}"
+        return f"{self.first_name} {self.last_name}, {self.license_type}"
 
     def to_dict(self):
         return asdict(self)
@@ -72,6 +79,7 @@ class Service:
     services_sought: tuple
     session_rate: str
     location: str
+    full_address: tuple = field(default=None, init=False)
     service_code: str = field(default=None, init=False)
     session_count_low: int = 12
     session_count_high: int = 24
@@ -92,21 +100,48 @@ class Service:
     def create_from_dict(cls, d):
         return Service(**d)
 
+    def get_address(self):
+        """Returns formatted address for where services will be provided."""
+
+        if self.location == "Mount Pleasant":
+            self.full_address = (
+                "890 Johnnie Dodds Blvd.",
+                "Bldg. 3 Ste. A",
+                "Mount Pleasant, S.C. 29464",
+            )
+        elif self.location == "North Charleston":
+            self.full_address = (
+                "9263 Medical Plaza Dr.",
+                "Ste. B",
+                "North Charleston, S.C. 29406",
+            )
+        else:
+            self.full_address = ("Telehealth",)
+
+        return self.full_address
+
+
     def new_gfe_low_total_estimate(self):
         return (
-            self.session_rate * (self.session_count_low + self.intake_qty)
+            int(self.session_rate) * (self.session_count_low + self.intake_qty)
             + self.registration_fee
         )
 
     def new_gfe_high_total_estimate(self):
         return (
-            self.session_rate * (self.session_count_high + self.intake_qty)
+            int(self.session_rate) * (self.session_count_high + self.intake_qty)
             + self.registration_fee
         )
 
+    def update_gfe_low_total_estimate(self):
+        return int(self.session_rate) * self.session_count_low
+
+    def update_gfe_high_total_estimate(self):
+        return int(self.session_rate) * self.session_count_high
+
     def new_low_estimate_table_rows(self):
-        service_total = self.session_rate * self.session_count_low
-        self.registration_fee = (
+        service_total = int(self.session_rate) * self.session_count_low
+        self.registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -131,11 +166,11 @@ class Service:
             service_total,
         )
 
-        return (self.registration_fee, intake_appt, service)
+        return (self.registration_row, intake_appt, service)
 
     def new_high_estimate_table_rows(self):
-        service_total = self.session_rate * self.session_count_high
-        self.registration_fee = (
+        service_total = int(self.session_rate) * self.session_count_high
+        self.registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -160,10 +195,10 @@ class Service:
             service_total,
         )
 
-        return (self.registration_fee, intake_appt, service)
+        return (self.registration_row, intake_appt, service)
 
     def update_low_estimate_table_rows(self, client_obj):
-        service_total = self.session_rate * self.session_count_low
+        service_total = int(self.session_rate) * self.session_count_low
         service = (
             "Psychotherapy",
             self.service_code,
@@ -176,7 +211,7 @@ class Service:
         return service
 
     def update_high_estimate_table_rows(self, client_obj):
-        service_total = self.session_rate * self.session_count_high
+        service_total = int(self.session_rate) * self.session_count_high
         service = (
             "Psychotherapy",
             self.service_code,
@@ -187,6 +222,43 @@ class Service:
         )
 
         return service
+
+
+class Time:
+    def __init__(self):
+        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp_formatted = self.timestamp.strftime(
+            "%m-%d-%Y"
+        )
+        self.months_until_renewal = relativedelta(months=+6)
+        self.renewal_date = self.timestamp + self.months_until_renewal
+
+
+class Text:
+    def __init__(self, section1, section2):
+        self.section1 = self.create_text_sections(section1)
+        self.section2 = self.create_text_sections(section2)
+
+    def create_text_sections(self, file: str) -> str:
+        """Reads text from a file and uses to populate sections of a Good Faith Estimate"""
+        section = []
+        hold = []
+        lines = []
+        with open(file) as text:
+            for line in text:
+                section.append(line)
+
+        for num, line in enumerate(section):
+            if line == "\n" or num == (len(section) - 1):
+                lines.append("".join(hold))
+                hold = []
+            else:
+                hold.append(line.rstrip() + " ")
+
+        return lines
+
+
+
 
 
 class MainApplication:
@@ -204,6 +276,8 @@ class MainApplication:
         self.client = None
         self.therapist = None
         self.service_info = None
+        self.time = None
+        self.text = Text("first_section.txt", "second_section.txt")
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
         self.search_window.bind("<<CreateClient>>", self._show_new_client_window)
@@ -216,15 +290,14 @@ class MainApplication:
         therapist_values = []
         for therapist in self.database.get_search_results():
             therapist_values.append(f"{therapist[0]} {' '.join(therapist[1:3])}, {therapist[3]}")
-        print(self.database.get_search_results())
-        self.life_resources_data["therapists"] = therapist_values #self.database.get_search_results()
+        self.life_resources_data["therapists"] = therapist_values
 
         services_query = """SELECT * FROM services"""
         self.database.search_and_return_tuple(services_query)
         service_values = []
         for service in self.database.get_search_results():
             service_values.append(f"{service[0]} {' '.join(service[1:])}")
-        self.life_resources_data["services"] = service_values #self.database.get_search_results()
+        self.life_resources_data["services"] = service_values
 
         locations_query = """SELECT city FROM locations"""
         self.database.search_and_return_tuple(locations_query)
@@ -288,7 +361,7 @@ class MainApplication:
         self.new_client_window.grid(sticky=tk.W + tk.E + tk.N + tk.S)
 
     def _show_estimate_window(self, *_) -> None:
-        self._get_client()
+        self.client = self._get_client()
         new_window = Toplevel(self.root)
         new_window.columnconfigure(0, weight=1)
         new_window.rowconfigure(0, weight=1)
@@ -301,33 +374,74 @@ class MainApplication:
 
     def _create_estimate(self, *_):
         estimate_window_data = self.estimate_window.get()
-        self._get_therapist(estimate_window_data)
+        self.therapist = self._get_therapist(estimate_window_data)
         estimate_window_data.pop("therapist")
         self.service_info = Service.create_from_dict(estimate_window_data)
-        print(self.client, self.therapist, self.service_info)
+        self.time = Time()
+        self.create_html()
         # Fill in code to get rest of needed data here.
-        #
+
     def _get_client(self) -> object:
         query = """SELECT * FROM clients WHERE client_id = :client_id"""
         window_data = self.search_window.get()
         selected_client_id = window_data["search_results"].split()[0]
-        print(selected_client_id)
         self.database.search(query, selected_client_id)
         results = self.database.get_search_results()
-        self.client = Client.create_from_dict(results[0])
-
+        return Client.create_from_dict(results[0])
 
     def _get_therapist(self, data: dict) -> object:
         query = """SELECT therapist_id, first_name, last_name, license_type, npi, tax_id
         FROM therapists WHERE therapist_id = :therapist_id"""
-        print(data["therapist"])
         selected_therapist_id = data["therapist"].split()[0]
-        print(selected_therapist_id)
         # selected_therapist_id = data["therapist"][0:2].rstrip()
         value = {"therapist_id": selected_therapist_id}
         self.database.search(query, value)
         results = self.database.get_search_results()
-        self.therapist = Therapist.create_from_dict(results[0])
+        return Therapist.create_from_dict(results[0])
+
+    def generate_filename(self):
+        return f"{self.client.last_first()}_{self.time.timestamp}.html"
+
+    def create_html(self):
+        """Creates html file that will be converted to pdf."""
+        filename = self.generate_filename()
+        environment = Environment(loader=FileSystemLoader("templates/"))
+        template = environment.get_template("html_prototype.html")
+
+        with open(filename, mode="w", encoding="utf-8") as html:
+            html.write(
+                template.render(
+                    client=self.client,
+                    therapist=self.therapist,
+                    service=self.service_info,
+                    time=self.time,
+                    text=self.text
+                )
+            )
+
+    def remove_html(self, file):
+        """Removes html file."""
+        if Path(file).exists():
+            Path.unlink(file)
+        else:
+            raise Exception("File does not exist.")
+
+
+    def convert_to_pdf(self):
+        """Converts html to pdf."""
+        css = "style.css"
+        # filepath = folder you want to save pdf file to
+        pdf_file = f"{self.filename[:-5]}.pdf"
+        # config = filepath to wkhtmltopdf executable (needed on Windows systems)
+        pdfkit.from_file(
+            f"{self.filename}",
+            pdf_file,
+            options={"enable-local-file-access": ""},
+            css=css,
+        )
+
+    def run(self):
+        self.root.mainloop()
 
 if __name__ == "__main__":
     app = MainApplication()
