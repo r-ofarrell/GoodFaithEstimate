@@ -47,13 +47,11 @@
                 </thead>
                 <tbody>
                     {% if service.new_or_update == "Update" %}
-                        {% for row in service.update_low_estimate_table_rows(client) %}
                     <tr>
-                        {% for item in row %}
+                        {% for item in service.update_low_estimate_table_rows(client) %}
                         <td>{{ item }}</td>
                         {% endfor %}
                     </tr>
-                        {% endfor %}
                     {% else %}
                         {% for row in service.new_low_estimate_table_rows() %}
                     <tr>
@@ -79,13 +77,11 @@
                 </thead>
                 <tbody>
                     {% if service.new_or_update == "Update" %}
-                        {% for row in service.update_high_estimate_table_rows(client) %}
                     <tr>
-                        {% for item in row %}
+                    {% for item in service.update_high_estimate_table_rows(client) %}
                         <td>{{ item }}</td>
                         {% endfor %}
                     </tr>
-                        {% endfor %}
                     {% else %}
                         {% for row in service.new_high_estimate_table_rows() %}
                     <tr>
@@ -98,7 +94,7 @@
                 </tbody>
             </table>
             {% if service.new_or_update == "Update" %}
-            <p class="estimate-total">Estimate Range: ${{ service.update_gfe_low_total_estimate() }}-{{ service.update_new_gfe_high_total_estimate() }}
+            <p class="estimate-total">Estimate Range: ${{ service.update_gfe_low_total_estimate() }}-{{ service.update_gfe_high_total_estimate() }}
             {% else %}
             <p class="estimate-total">Estimate Range: ${{ service.new_gfe_low_total_estimate() }}-{{ service.new_gfe_high_total_estimate() }}
             {% endif %}

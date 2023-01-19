@@ -202,7 +202,7 @@ class Service:
         service = (
             "Psychotherapy",
             self.service_code,
-            client_obj.dx,
+            client_obj.diagnosis,
             self.session_rate,
             self.session_count_low,
             service_total,
@@ -215,7 +215,7 @@ class Service:
         service = (
             "Psychotherapy",
             self.service_code,
-            client_obj.dx,
+            client_obj.diagnosis,
             self.session_rate,
             self.session_count_high,
             service_total,
