@@ -4,20 +4,6 @@ import re
 from tkinter import messagebox as tkmb
 
 from widget import AreaCodeEntry, DobEntry, PhoneNumberEntry, LabelInput, ZipcodeEntry
-from constants import FieldTypes as FT
-
-
-class FrameWithVarTypes(ttk.Frame):
-    var_types = var_types = {
-        FT.string: tk.StringVar,
-        FT.string_list: tk.StringVar,
-        FT.short_string_list: tk.StringVar,
-        FT.iso_date_string: tk.StringVar,
-        FT.long_string: tk.StringVar,
-        FT.decimal: tk.DoubleVar,
-        FT.integer: tk.IntVar,
-        FT.boolean: tk.BooleanVar,
-    }
 
 
 class ClientSelectionWindow(ttk.Frame):
@@ -178,6 +164,7 @@ class CreateEstimateWindow(ttk.Frame):
         super().__init__(parent, *args, **kwargs)
 
         self._vars = {
+            "new_or_update": tk.StringVar(),
             "services_sought": tk.StringVar(),
             "therapist": tk.StringVar(),
             "session_rate": tk.StringVar(),
@@ -185,14 +172,22 @@ class CreateEstimateWindow(ttk.Frame):
         }
 
         estimate_info = self._add_frame("Estimate information", cols=1)
+        new_or_update = LabelInput(
+            estimate_info,
+            "New or updated estimate?",
+            self._vars["new_or_update"],
+            ttk.Combobox
+        )
+        new_or_update.input["state"] = "readonly"
+        new_or_update.input["values"] = ["New", "Update"]
         services_sought = LabelInput(
             estimate_info,
             "Services sought",
             self._vars["services_sought"],
-            ttk.Combobox,
+            ttk.Combobox
         )
         services_sought.input["state"] = "readonly"
-        services_sought.input["values"] = lr_data["services_sought"]
+        services_sought.input["values"] = lr_data["services"]
         therapist_selection = LabelInput(
             estimate_info, "Therapist", self._vars["therapist"], ttk.Combobox
         )
@@ -215,6 +210,7 @@ class CreateEstimateWindow(ttk.Frame):
             command=self._on_create_estimate,
         )
 
+        new_or_update.grid(sticky=tk.W + tk.E)
         services_sought.grid(sticky=tk.W + tk.E)
         therapist_selection.grid(sticky=tk.W + tk.E)
         session_rate.grid(sticky=tk.W + tk.E)
