@@ -23,7 +23,9 @@ class Database:
 
     def create_connection(self):
         """Creates connection to a specified database."""
-        return sqlite3.connect(self._database)
+        conn = sqlite3.connect(self._database)
+        conn.row_factory = sqlite3.Row
+        return conn
 
     def create_cursor(self):
         """Creates database cursor."""
