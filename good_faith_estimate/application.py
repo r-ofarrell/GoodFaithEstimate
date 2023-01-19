@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import Toplevel, messagebox as tkmb
 from tkinter import ttk
 from pathlib import Path
-from dataclasses import dataclass, asdict, astuple
+from dataclasses import dataclass, asdict, astuple, field
 
 from markupsafe import re
 import models
@@ -18,11 +18,13 @@ class Client:
     first_name: str
     last_name: str
     date_of_birth: str
+    email: str
     area_code: str
     phone_number: str
     street: str
     apt_ste_bldg: str
     city: str
+    state: str
     zipcode: str
     diagnosis: str = None
 
@@ -42,10 +44,10 @@ class Client:
 class Therapist:
     """Represents a selected therapist."""
 
-    id: int
-    first: str
-    last: str
-    license: str
+    therapist_id: int
+    first_name: str
+    last_name: str
+    license_type: str
     tax_id: str
     npi: str
 
@@ -67,9 +69,10 @@ class Service:
     """Represents details for therapeutic services."""
 
     new_or_update: str
-    service_code: str
+    services_sought: tuple
     session_rate: str
     location: str
+    service_code: str = field(default=None, init=False)
     session_count_low: int = 12
     session_count_high: int = 24
     registration_service_code: str = "None"
@@ -78,6 +81,9 @@ class Service:
     intake_service_code: str = "90791"
     intake_qty: int = 1
     new_client_dx_code: str = "None"
+
+    def __post_init__(self):
+        self.service_code = self.services_sought.split()[1]
 
     def to_dict(self):
         return asdict(self)
@@ -195,7 +201,9 @@ class MainApplication:
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
         self.estimate_window = None
-        self.estimate_info = dict()
+        self.client = None
+        self.therapist = None
+        self.service_info = None
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
         self.search_window.bind("<<CreateClient>>", self._show_new_client_window)
@@ -204,16 +212,26 @@ class MainApplication:
         self.life_resources_data = dict()
         therapist_query = """SELECT therapist_id, first_name, last_name,
         license_type FROM therapists WHERE therapist_status = 1"""
-        self.database.search(therapist_query)
-        self.life_resources_data["therapists"] = self.database.get_data()
+        self.database.search_and_return_tuple(therapist_query)
+        therapist_values = []
+        for therapist in self.database.get_search_results():
+            therapist_values.append(f"{therapist[0]} {' '.join(therapist[1:3])}, {therapist[3]}")
+        print(self.database.get_search_results())
+        self.life_resources_data["therapists"] = therapist_values #self.database.get_search_results()
 
         services_query = """SELECT * FROM services"""
-        self.database.search(services_query)
-        self.life_resources_data["services"] = self.database.get_data()
+        self.database.search_and_return_tuple(services_query)
+        service_values = []
+        for service in self.database.get_search_results():
+            service_values.append(f"{service[0]} {' '.join(service[1:])}")
+        self.life_resources_data["services"] = service_values #self.database.get_search_results()
 
-        locations_query = """SELECT location_id, city FROM locations"""
-        self.database.search(locations_query)
-        self.life_resources_data["location"] = self.database.get_data()
+        locations_query = """SELECT city FROM locations"""
+        self.database.search_and_return_tuple(locations_query)
+        location_values = []
+        for location in self.database.get_search_results():
+            location_values.append(location[0])
+        self.life_resources_data["location"] = location_values
 
         self.estimate_window = views.CreateEstimateWindow(
             self.root, self.life_resources_data
@@ -248,8 +266,8 @@ class MainApplication:
                            """Please enter, at a minimum, the first or last name of the client you want to search for.""")
             return None
 
-        self.database.search(query, values)
-        results = self.database.get_data()
+        self.database.search_and_return_tuple(query, values)
+        results = self.database.get_search_results()
         if results:
             self.search_window.search_results["values"] = results
         else:
@@ -270,6 +288,7 @@ class MainApplication:
         self.new_client_window.grid(sticky=tk.W + tk.E + tk.N + tk.S)
 
     def _show_estimate_window(self, *_) -> None:
+        self._get_client()
         new_window = Toplevel(self.root)
         new_window.columnconfigure(0, weight=1)
         new_window.rowconfigure(0, weight=1)
@@ -282,20 +301,33 @@ class MainApplication:
 
     def _create_estimate(self, *_):
         estimate_window_data = self.estimate_window.get()
-        therapist = self._get_therapist_info(estimate_window_data)
+        self._get_therapist(estimate_window_data)
+        estimate_window_data.pop("therapist")
+        self.service_info = Service.create_from_dict(estimate_window_data)
+        print(self.client, self.therapist, self.service_info)
         # Fill in code to get rest of needed data here.
+        #
+    def _get_client(self) -> object:
+        query = """SELECT * FROM clients WHERE client_id = :client_id"""
+        window_data = self.search_window.get()
+        selected_client_id = window_data["search_results"].split()[0]
+        print(selected_client_id)
+        self.database.search(query, selected_client_id)
+        results = self.database.get_search_results()
+        self.client = Client.create_from_dict(results[0])
 
 
-    def _get_therapist_info(self, data: dict) -> object:
+    def _get_therapist(self, data: dict) -> object:
         query = """SELECT therapist_id, first_name, last_name, license_type, npi, tax_id
         FROM therapists WHERE therapist_id = :therapist_id"""
-        selected_therapist_id = data["therapist"][0:2].rstrip()
+        print(data["therapist"])
+        selected_therapist_id = data["therapist"].split()[0]
+        print(selected_therapist_id)
+        # selected_therapist_id = data["therapist"][0:2].rstrip()
         value = {"therapist_id": selected_therapist_id}
         self.database.search(query, value)
-        results = self.database.get_data()
-        therapist = Therapist(results[0])
-        print(therapist.full_name_and_license())
-        return therapist
+        results = self.database.get_search_results()
+        self.therapist = Therapist.create_from_dict(results[0])
 
 if __name__ == "__main__":
     app = MainApplication()

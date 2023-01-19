@@ -22,7 +22,6 @@ class ClientSelectionWindow(ttk.Frame):
         super().__init__(parent, *args, **kwargs)
 
         self._vars = {
-            "id": tk.StringVar(),
             "first": tk.StringVar(),
             "last": tk.StringVar(),
             "search_results": tk.StringVar(),
