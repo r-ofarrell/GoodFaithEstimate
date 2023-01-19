@@ -272,12 +272,14 @@ class MainApplication:
         self.database = models.Database(str(Path.joinpath(self.db_folder, "gfe_db.db")))
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
+        self.new_window = None
         self.estimate_window = None
         self.client = None
         self.therapist = None
         self.service_info = None
         self.time = None
         self.text = Text("first_section.txt", "second_section.txt")
+        self.filename = None
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
         self.search_window.bind("<<CreateClient>>", self._show_new_client_window)
@@ -306,9 +308,6 @@ class MainApplication:
             location_values.append(location[0])
         self.life_resources_data["location"] = location_values
 
-        self.estimate_window = views.CreateEstimateWindow(
-            self.root, self.life_resources_data
-        )
         self.search_window.grid()
         self.root.mainloop()
 
@@ -362,24 +361,15 @@ class MainApplication:
 
     def _show_estimate_window(self, *_) -> None:
         self.client = self._get_client()
-        new_window = Toplevel(self.root)
-        new_window.columnconfigure(0, weight=1)
-        new_window.rowconfigure(0, weight=1)
-        new_window.geometry("300x400")
-        self.estimate_window = views.CreateEstimateWindow(new_window, self.life_resources_data)
+        self.new_window = Toplevel(self.root)
+        self.new_window.columnconfigure(0, weight=1)
+        self.new_window.rowconfigure(0, weight=1)
+        self.new_window.geometry("300x400")
+        self.estimate_window = views.CreateEstimateWindow(self.new_window, self.life_resources_data)
         self.estimate_window.bind("<<CreateEstimate>>", self._create_estimate)
         self.estimate_window.columnconfigure(0, weight=1)
         self.estimate_window.rowconfigure(0, weight=1)
         self.estimate_window.grid(sticky=tk.W + tk.E + tk.N + tk.S)
-
-    def _create_estimate(self, *_):
-        estimate_window_data = self.estimate_window.get()
-        self.therapist = self._get_therapist(estimate_window_data)
-        estimate_window_data.pop("therapist")
-        self.service_info = Service.create_from_dict(estimate_window_data)
-        self.time = Time()
-        self.create_html()
-        # Fill in code to get rest of needed data here.
 
     def _get_client(self) -> object:
         query = """SELECT * FROM clients WHERE client_id = :client_id"""
@@ -399,16 +389,36 @@ class MainApplication:
         results = self.database.get_search_results()
         return Therapist.create_from_dict(results[0])
 
+    def _create_estimate(self, *_):
+        estimate_window_data = self.estimate_window.get()
+        self.therapist = self._get_therapist(estimate_window_data)
+        estimate_window_data.pop("therapist")
+        self.service_info = Service.create_from_dict(estimate_window_data)
+        self.time = Time()
+        self.create_html()
+        self.convert_to_pdf()
+        self.remove_html(self.filename)
+        tkmb.showinfo(
+            "GFE Created",
+            f"The Good Faith Estimate for {self.client.full_name()} was successfully created.",
+        )
+        if tkmb.askyesno("Return to client search window?",
+                      "Would you like to create another estimate?"):
+            self.new_window.destroy()
+        else:
+            self.root.destroy()
+
+
     def generate_filename(self):
         return f"{self.client.last_first()}_{self.time.timestamp}.html"
 
     def create_html(self):
         """Creates html file that will be converted to pdf."""
-        filename = self.generate_filename()
+        self.filename = self.generate_filename()
         environment = Environment(loader=FileSystemLoader("templates/"))
         template = environment.get_template("html_prototype.html")
 
-        with open(filename, mode="w", encoding="utf-8") as html:
+        with open(self.filename, mode="w", encoding="utf-8") as html:
             html.write(
                 template.render(
                     client=self.client,
@@ -422,7 +432,8 @@ class MainApplication:
     def remove_html(self, file):
         """Removes html file."""
         if Path(file).exists():
-            Path.unlink(file)
+            file_to_remove = Path(file)
+            file_to_remove.unlink()
         else:
             raise Exception("File does not exist.")
 
@@ -439,9 +450,6 @@ class MainApplication:
             options={"enable-local-file-access": ""},
             css=css,
         )
-
-    def run(self):
-        self.root.mainloop()
 
 if __name__ == "__main__":
     app = MainApplication()
