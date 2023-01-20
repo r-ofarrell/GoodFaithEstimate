@@ -96,37 +96,37 @@ class NewClientWindow(ttk.Frame):
         super().__init__(parent, *args, **kwargs)
 
         self._vars = {
-            "client_first": tk.StringVar(),
-            "client_last": tk.StringVar(),
-            "client_dob": tk.StringVar(),
-            "client_area_code": tk.StringVar(),
-            "client_phone": tk.StringVar(),
-            "client_street": tk.StringVar(),
-            "client_apt_bldg_ste": tk.StringVar(),
-            "client_city": tk.StringVar(),
-            "client_state": tk.StringVar(),
-            "client_zip": tk.StringVar(),
+            "first_name": tk.StringVar(),
+            "last_name": tk.StringVar(),
+            "date_of_birth": tk.StringVar(),
+            "area_code": tk.StringVar(),
+            "phone_number": tk.StringVar(),
+            "street": tk.StringVar(),
+            "apt_bldg_ste": tk.StringVar(),
+            "city": tk.StringVar(),
+            "state": tk.StringVar(),
+            "zipcode": tk.StringVar(),
         }
 
         new_client = self._add_frame("New client info", cols=1)
-        LabelInput(new_client, "First name", self._vars["client_first"]).grid()
-        LabelInput(new_client, "Last name", self._vars["client_last"]).grid()
+        LabelInput(new_client, "First name", self._vars["first_name"]).grid()
+        LabelInput(new_client, "Last name", self._vars["last_name"]).grid()
         LabelInput(
-            new_client, "Date of birth", self._vars["client_dob"], input_class=DobEntry
+            new_client, "Date of birth", self._vars["date_of_birth"], input_class=DobEntry
         ).grid()
         LabelInput(
-            new_client, "Area code", self._vars["client_area_code"], input_class=AreaCodeEntry
+            new_client, "Area code", self._vars["area_code"], input_class=AreaCodeEntry
         ).grid()
         LabelInput(
-            new_client, "Phone number", self._vars["client_phone"], input_class=PhoneNumberEntry
+            new_client, "Phone number", self._vars["phone_number"], input_class=PhoneNumberEntry
         ).grid()
-        LabelInput(new_client, "Street", self._vars["client_street"]).grid()
+        LabelInput(new_client, "Street", self._vars["street"]).grid()
         LabelInput(
-            new_client, "Apt/Bldg/Ste", self._vars["client_apt_bldg_ste"]
+            new_client, "Apt/Bldg/Ste", self._vars["apt_bldg_ste"]
         ).grid()
-        LabelInput(new_client, "City", self._vars["client_city"]).grid()
-        LabelInput(new_client, "State", self._vars["client_state"]).grid()
-        LabelInput(new_client, "Zip", self._vars["client_zip"], input_class=ZipcodeEntry).grid()
+        LabelInput(new_client, "City", self._vars["city"]).grid()
+        LabelInput(new_client, "State", self._vars["state"]).grid()
+        LabelInput(new_client, "Zip", self._vars["zipcode"], input_class=ZipcodeEntry).grid()
         submit_btn = ttk.Button(
             new_client, text="Submit", command=self._on_submit
         )

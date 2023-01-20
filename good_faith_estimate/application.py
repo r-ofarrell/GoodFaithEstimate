@@ -18,6 +18,7 @@ import widget
 @dataclass
 class Client:
     """Represents a selected client."""
+
     client_id: int
     first_name: str
     last_name: str
@@ -26,7 +27,7 @@ class Client:
     area_code: str
     phone_number: str
     street: str
-    apt_ste_bldg: str
+    apt_bldg_ste: str
     city: str
     state: str
     zipcode: str
@@ -44,7 +45,6 @@ class Client:
     @classmethod
     def create_from_dict(cls, d):
         return Client(**d)
-
 
 
 @dataclass
@@ -70,6 +70,7 @@ class Therapist:
     @classmethod
     def create_from_dict(cls, d):
         return Therapist(**d)
+
 
 @dataclass
 class Service:
@@ -120,7 +121,6 @@ class Service:
 
         return self.full_address
 
-
     def new_gfe_low_total_estimate(self):
         return (
             int(self.session_rate) * (self.session_count_low + self.intake_qty)
@@ -129,7 +129,8 @@ class Service:
 
     def new_gfe_high_total_estimate(self):
         return (
-            int(self.session_rate) * (self.session_count_high + self.intake_qty)
+            int(self.session_rate)
+            * (self.session_count_high + self.intake_qty)
             + self.registration_fee
         )
 
@@ -227,9 +228,7 @@ class Service:
 class Time:
     def __init__(self):
         self.timestamp = datetime.now(timezone.utc)
-        self.timestamp_formatted = self.timestamp.strftime(
-            "%m-%d-%Y"
-        )
+        self.timestamp_formatted = self.timestamp.strftime("%m-%d-%Y")
         self.months_until_renewal = relativedelta(months=+6)
         self.renewal_date = self.timestamp + self.months_until_renewal
 
@@ -257,8 +256,40 @@ class Text:
 
         return lines
 
+@dataclass
+class EstimateDetails:
+    client: object
+    therapist: object
+    service_info: object
+    time: object
 
+    def get_data_for_database(self):
+        if self.service_info.new_or_update == "New":
+            data = (
+                self.client.client_id,
+                self.therapist.therapist_id,
+                self.time.timestamp,
+                self.time.renewal_date,
+                self.service_info.service_code,
+                self.service_info.session_rate,
+                self.service_info.new_gfe_low_total_estimate(),
+                self.service_info.new_gfe_high_total_estimate(),
+                self.service_info.location,
+            )
+        else:
+            data = (
+                self.client.client_id,
+                self.therapist.therapist_id,
+                self.time.timestamp,
+                self.time.renewal_date,
+                self.service_info.service_code,
+                self.service_info.session_rate,
+                self.service_info.update_gfe_low_total_estimate(),
+                self.service_info.new_update_high_total_estimate(),
+                self.service_info.location,
+            )
 
+        return data
 
 
 class MainApplication:
@@ -269,7 +300,9 @@ class MainApplication:
         self.root = tk.Tk()
         self.file = Path(__file__)
         self.db_folder = self.file.parents[1]
-        self.database = models.Database(str(Path.joinpath(self.db_folder, "gfe_db.db")))
+        self.database = models.Database(
+            str(Path.joinpath(self.db_folder, "gfe_db.db"))
+        )
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
         self.new_window = None
@@ -279,11 +312,16 @@ class MainApplication:
         self.service_info = None
         self.time = None
         self.text = Text("first_section.txt", "second_section.txt")
+        self.estimate_details = None
         self.filename = None
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
-        self.search_window.bind("<<CreateClient>>", self._show_new_client_window)
-        self.search_window.bind("<<CreateEstimate>>", self._show_estimate_window)
+        self.search_window.bind(
+            "<<CreateClient>>", self._show_new_client_window
+        )
+        self.search_window.bind(
+            "<<CreateEstimate>>", self._show_estimate_window
+        )
 
         self.life_resources_data = dict()
         therapist_query = """SELECT therapist_id, first_name, last_name,
@@ -291,7 +329,9 @@ class MainApplication:
         self.database.search_and_return_tuple(therapist_query)
         therapist_values = []
         for therapist in self.database.get_search_results():
-            therapist_values.append(f"{therapist[0]} {' '.join(therapist[1:3])}, {therapist[3]}")
+            therapist_values.append(
+                f"{therapist[0]} {' '.join(therapist[1:3])}, {therapist[3]}"
+            )
         self.life_resources_data["therapists"] = therapist_values
 
         services_query = """SELECT * FROM services"""
@@ -334,8 +374,10 @@ class MainApplication:
         else:
             # If search fields are empty when search button is pressed, throw
             # an error.
-            tkmb.showerror("Error",
-                           """Please enter, at a minimum, the first or last name of the client you want to search for.""")
+            tkmb.showerror(
+                "Error",
+                """Please enter, at a minimum, the first or last name of the client you want to search for.""",
+            )
             return None
 
         self.database.search_and_return_tuple(query, values)
@@ -343,33 +385,62 @@ class MainApplication:
         if results:
             self.search_window.search_results["values"] = results
         else:
-            if tkmb.askyesno("Create new client?",
-                             "No client was found. Would you like to create a new client?"):
+            if tkmb.askyesno(
+                "Create new client?",
+                "No client was found. Would you like to create a new client?",
+            ):
                 self._new_client_window()
             else:
                 return None
 
     def _show_new_client_window(self, *_) -> None:
-        new_window = Toplevel(self.root)
-        new_window.columnconfigure(0, weight=1)
-        new_window.rowconfigure(0, weight=1)
-        new_window.geometry("400x700")
-        self.new_client_window = views.NewClientWindow(new_window)
+        self.new_window1 = Toplevel(self.root)
+        self.new_window1.columnconfigure(0, weight=1)
+        self.new_window1.rowconfigure(0, weight=1)
+        self.new_window1.geometry("400x700")
+        self.new_client_window = views.NewClientWindow(self.new_window1)
+        self.new_client_window.bind(
+            "<<Submit>>", self._input_client_to_database
+        )
         self.new_client_window.columnconfigure(0, weight=1)
         self.new_client_window.rowconfigure(0, weight=1)
         self.new_client_window.grid(sticky=tk.W + tk.E + tk.N + tk.S)
 
+    def _input_client_to_database(self, *_):
+        client_info = self.new_client_window.get()
+        columns = [key for key in client_info.keys()]
+        query_values = [f":{key}" for key in client_info.keys()]
+        query = f"""INSERT INTO clients ({' ,'.join(columns)}) VALUES({', '.join(query_values)})"""
+        self.database.update(query, client_info)
+        tkmb.showinfo("Success", f"{client_info['first_name']} {client_info['last_name']} was created successfully.")
+        self.new_window1.destroy()
+
     def _show_estimate_window(self, *_) -> None:
         self.client = self._get_client()
-        self.new_window = Toplevel(self.root)
-        self.new_window.columnconfigure(0, weight=1)
-        self.new_window.rowconfigure(0, weight=1)
-        self.new_window.geometry("300x400")
-        self.estimate_window = views.CreateEstimateWindow(self.new_window, self.life_resources_data)
+        self.new_window2 = Toplevel(self.root)
+        self.new_window2.columnconfigure(0, weight=1)
+        self.new_window2.rowconfigure(0, weight=1)
+        self.new_window2.geometry("300x400")
+        self.estimate_window = views.CreateEstimateWindow(
+            self.new_window2, self.life_resources_data
+        )
         self.estimate_window.bind("<<CreateEstimate>>", self._create_estimate)
         self.estimate_window.columnconfigure(0, weight=1)
         self.estimate_window.rowconfigure(0, weight=1)
         self.estimate_window.grid(sticky=tk.W + tk.E + tk.N + tk.S)
+
+    def _input_estimate_to_database(self):
+        self.estimate_details = EstimateDetails(
+            self.client, self.therapist, self.service_info, self.time
+        )
+        query = f"""INSERT INTO estimate_details (client_id, therapist_id,
+        date_of_estimate, renewal_date, services_sought, session_rate,
+        low_estimate, high_estimate, location)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        self.database.update(
+            query,
+            self.estimate_details.get_data_for_database(),
+        )
 
     def _get_client(self) -> object:
         query = """SELECT * FROM clients WHERE client_id = :client_id"""
@@ -383,7 +454,6 @@ class MainApplication:
         query = """SELECT therapist_id, first_name, last_name, license_type, npi, tax_id
         FROM therapists WHERE therapist_id = :therapist_id"""
         selected_therapist_id = data["therapist"].split()[0]
-        # selected_therapist_id = data["therapist"][0:2].rstrip()
         value = {"therapist_id": selected_therapist_id}
         self.database.search(query, value)
         results = self.database.get_search_results()
@@ -395,6 +465,8 @@ class MainApplication:
         estimate_window_data.pop("therapist")
         self.service_info = Service.create_from_dict(estimate_window_data)
         self.time = Time()
+        self.service_info.date_of_estimate = self.time.timestamp
+        self._input_estimate_to_database()
         self.create_html()
         self.convert_to_pdf()
         self.remove_html(self.filename)
@@ -402,12 +474,13 @@ class MainApplication:
             "GFE Created",
             f"The Good Faith Estimate for {self.client.full_name()} was successfully created.",
         )
-        if tkmb.askyesno("Return to client search window?",
-                      "Would you like to create another estimate?"):
+        if tkmb.askyesno(
+            "Return to client search window?",
+            "Would you like to create another estimate?",
+        ):
             self.new_window.destroy()
         else:
             self.root.destroy()
-
 
     def generate_filename(self):
         return f"{self.client.last_first()}_{self.time.timestamp}.html"
@@ -425,7 +498,7 @@ class MainApplication:
                     therapist=self.therapist,
                     service=self.service_info,
                     time=self.time,
-                    text=self.text
+                    text=self.text,
                 )
             )
 
@@ -436,7 +509,6 @@ class MainApplication:
             file_to_remove.unlink()
         else:
             raise Exception("File does not exist.")
-
 
     def convert_to_pdf(self):
         """Converts html to pdf."""
@@ -450,6 +522,7 @@ class MainApplication:
             options={"enable-local-file-access": ""},
             css=css,
         )
+
 
 if __name__ == "__main__":
     app = MainApplication()

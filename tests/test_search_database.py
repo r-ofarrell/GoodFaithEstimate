@@ -28,6 +28,7 @@ def clean_database(database):
     first_name text NOT NULL,
     last_name text NOT NULL,
     date_of_birth text NOT NULL,
+    email text NOT NULL,
     area_code text NOT NULL,
     phone_number text NOT NULL,
     street text NOT NULL,
@@ -55,6 +56,7 @@ def test_db_search_and_return_tuple_returns_tuple(database):
                         first_name,
                         last_name,
                         date_of_birth,
+                        email,
                         area_code,
                         phone_number,
                         street,
@@ -62,13 +64,14 @@ def test_db_search_and_return_tuple_returns_tuple(database):
                         state,
                         zipcode
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
 
     values = (
             1,
             'Tony',
             'Starks',
             '1974-06-06',
+            'tstarks@starks.com',
             '555',
             '5555555',
             '123 Starks Dr.',
@@ -91,6 +94,7 @@ def test_update_db(database):
             'Tony',
             'Starks',
             '1974-06-06',
+            'tstarks@starks.com',
             '555',
             '5555555',
             '123 Starks Dr.',
