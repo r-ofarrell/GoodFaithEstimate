@@ -285,7 +285,7 @@ class EstimateDetails:
                 self.service_info.service_code,
                 self.service_info.session_rate,
                 self.service_info.update_gfe_low_total_estimate(),
-                self.service_info.new_update_high_total_estimate(),
+                self.service_info.new_high_total_estimate(),
                 self.service_info.location,
             )
 
@@ -389,7 +389,7 @@ class MainApplication:
                 "Create new client?",
                 "No client was found. Would you like to create a new client?",
             ):
-                self._new_client_window()
+                self._show_new_client_window()
             else:
                 return None
 
@@ -443,10 +443,10 @@ class MainApplication:
         )
 
     def _get_client(self) -> object:
-        query = """SELECT * FROM clients WHERE client_id = :client_id"""
+        query = """SELECT * FROM clients WHERE client_id = (?)"""
         window_data = self.search_window.get()
         selected_client_id = window_data["search_results"].split()[0]
-        self.database.search(query, selected_client_id)
+        self.database.search(query, (selected_client_id,))
         results = self.database.get_search_results()
         return Client.create_from_dict(results[0])
 
@@ -483,7 +483,7 @@ class MainApplication:
             self.root.destroy()
 
     def generate_filename(self):
-        return f"{self.client.last_first()}_{self.time.timestamp}.html"
+        return f"{self.client.last_first()}_{self.time.timestamp.strftime('%Y-%m-%d-%H-%M-%S')}.html"
 
     def create_html(self):
         """Creates html file that will be converted to pdf."""
