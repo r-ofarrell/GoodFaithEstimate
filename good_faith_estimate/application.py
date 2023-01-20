@@ -478,7 +478,7 @@ class MainApplication:
             "Return to client search window?",
             "Would you like to create another estimate?",
         ):
-            self.new_window.destroy()
+            self.new_window2.destroy()
         else:
             self.root.destroy()
 
