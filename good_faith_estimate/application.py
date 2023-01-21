@@ -1,7 +1,7 @@
 from sqlite3
 import tkinter as tk
-from tkinter import Toplevel, messagebox as tkmb
-from tkinter import ttk
+from tkinter import messagebox as tkmb
+from tkinter import ttk, Toplevel
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict, field
