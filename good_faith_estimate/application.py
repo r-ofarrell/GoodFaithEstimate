@@ -1,4 +1,4 @@
-from sqlite3 import register_adapter
+from sqlite3
 import tkinter as tk
 from tkinter import Toplevel, messagebox as tkmb
 from tkinter import ttk
@@ -142,7 +142,7 @@ class Service:
 
     def new_low_estimate_table_rows(self):
         service_total = int(self.session_rate) * self.session_count_low
-        self.registration_row = (
+        registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -167,11 +167,11 @@ class Service:
             service_total,
         )
 
-        return (self.registration_row, intake_appt, service)
+        return (registration_row, intake_appt, service)
 
     def new_high_estimate_table_rows(self):
         service_total = int(self.session_rate) * self.session_count_high
-        self.registration_row = (
+        registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -196,7 +196,7 @@ class Service:
             service_total,
         )
 
-        return (self.registration_row, intake_appt, service)
+        return (registration_row, intake_appt, service)
 
     def update_low_estimate_table_rows(self, client_obj):
         service_total = int(self.session_rate) * self.session_count_low
@@ -314,6 +314,8 @@ class MainApplication:
         self.text = Text("first_section.txt", "second_section.txt")
         self.estimate_details = None
         self.filename = None
+        self.new_window1 = None
+        self.new_window2 = None
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
         self.search_window.bind(
@@ -433,7 +435,7 @@ class MainApplication:
         self.estimate_details = EstimateDetails(
             self.client, self.therapist, self.service_info, self.time
         )
-        query = f"""INSERT INTO estimate_details (client_id, therapist_id,
+        query = """INSERT INTO estimate_details (client_id, therapist_id,
         date_of_estimate, renewal_date, services_sought, session_rate,
         low_estimate, high_estimate, location)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
