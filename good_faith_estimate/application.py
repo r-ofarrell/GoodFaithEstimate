@@ -1,7 +1,7 @@
-from sqlite3 import register_adapter
+import sqlite3
 import tkinter as tk
-from tkinter import Toplevel, messagebox as tkmb
-from tkinter import ttk
+from tkinter import messagebox as tkmb
+from tkinter import ttk, Toplevel
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict, field
@@ -142,7 +142,7 @@ class Service:
 
     def new_low_estimate_table_rows(self):
         service_total = int(self.session_rate) * self.session_count_low
-        self.registration_row = (
+        registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -167,11 +167,11 @@ class Service:
             service_total,
         )
 
-        return (self.registration_row, intake_appt, service)
+        return (registration_row, intake_appt, service)
 
     def new_high_estimate_table_rows(self):
         service_total = int(self.session_rate) * self.session_count_high
-        self.registration_row = (
+        registration_row = (
             "Registration fee",
             self.registration_service_code,
             self.new_client_dx_code,
@@ -196,7 +196,7 @@ class Service:
             service_total,
         )
 
-        return (self.registration_row, intake_appt, service)
+        return (registration_row, intake_appt, service)
 
     def update_low_estimate_table_rows(self, client_obj):
         service_total = int(self.session_rate) * self.session_count_low
@@ -285,7 +285,7 @@ class EstimateDetails:
                 self.service_info.service_code,
                 self.service_info.session_rate,
                 self.service_info.update_gfe_low_total_estimate(),
-                self.service_info.new_update_high_total_estimate(),
+                self.service_info.new_high_total_estimate(),
                 self.service_info.location,
             )
 
@@ -314,6 +314,8 @@ class MainApplication:
         self.text = Text("first_section.txt", "second_section.txt")
         self.estimate_details = None
         self.filename = None
+        self.new_window1 = None
+        self.new_window2 = None
 
         self.search_window.bind("<<Search>>", self._get_client_from_db)
         self.search_window.bind(
@@ -389,7 +391,7 @@ class MainApplication:
                 "Create new client?",
                 "No client was found. Would you like to create a new client?",
             ):
-                self._new_client_window()
+                self._show_new_client_window()
             else:
                 return None
 
@@ -433,7 +435,7 @@ class MainApplication:
         self.estimate_details = EstimateDetails(
             self.client, self.therapist, self.service_info, self.time
         )
-        query = f"""INSERT INTO estimate_details (client_id, therapist_id,
+        query = """INSERT INTO estimate_details (client_id, therapist_id,
         date_of_estimate, renewal_date, services_sought, session_rate,
         low_estimate, high_estimate, location)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
@@ -443,10 +445,10 @@ class MainApplication:
         )
 
     def _get_client(self) -> object:
-        query = """SELECT * FROM clients WHERE client_id = :client_id"""
+        query = """SELECT * FROM clients WHERE client_id = (?)"""
         window_data = self.search_window.get()
         selected_client_id = window_data["search_results"].split()[0]
-        self.database.search(query, selected_client_id)
+        self.database.search(query, (selected_client_id,))
         results = self.database.get_search_results()
         return Client.create_from_dict(results[0])
 
@@ -483,7 +485,7 @@ class MainApplication:
             self.root.destroy()
 
     def generate_filename(self):
-        return f"{self.client.last_first()}_{self.time.timestamp}.html"
+        return f"{self.client.last_first()}_{self.time.timestamp.strftime('%Y-%m-%d-%H-%M-%S')}.html"
 
     def create_html(self):
         """Creates html file that will be converted to pdf."""
