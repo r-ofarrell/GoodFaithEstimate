@@ -298,11 +298,8 @@ class MainApplication:
     def __init__(self, *args, **kwargs) -> None:
         # super().__init__(*args, **kwargs)
         self.root = tk.Tk()
-        self.file = Path(__file__)
-        self.db_folder = self.file.parents[1]
-        self.database = models.Database(
-            str(Path.joinpath(self.db_folder, "gfe_db.db"))
-        )
+        # self.file = Path(__file__)
+        self.database = models.Database("gfe_db.db")
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
         self.new_window = None

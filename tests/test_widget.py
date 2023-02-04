@@ -2,14 +2,7 @@ import enum
 import unittest
 import tkinter as tk
 from tkinter import ttk
-from pathlib import PurePath
-current_dir = PurePath(__file__)
-import_dir = current_dir.parents[1].joinpath('good_faith_estimate')
-
-import sys
-sys.path.insert(0, str(import_dir))
-
-from widget import DobEntry
+from ..widget import DobEntry
 
 
 class TestDobEntry(unittest.TestCase):

@@ -2,14 +2,7 @@ import pytest
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from pathlib import PurePath
-current_dir = PurePath(__file__)
-import_dir = current_dir.parents[1].joinpath('good_faith_estimate')
-
-import sys
-sys.path.insert(0, str(import_dir))
-
-from widget import DobEntry, AreaCodeEntry, PhoneNumberEntry, ZipcodeEntry
+from ..widget import DobEntry, AreaCodeEntry, PhoneNumberEntry, ZipcodeEntry
 
 
 @pytest.fixture()

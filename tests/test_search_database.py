@@ -2,18 +2,13 @@ import pytest
 import sqlite3
 import textwrap
 from pathlib import Path, PurePath
-current_dir = PurePath(__file__)
-import_dir = current_dir.parents[1].joinpath('good_faith_estimate')
-
-import sys
-sys.path.insert(0, str(import_dir))
-
-from models import Database
+from ..models import Database
 
 
 @pytest.fixture()
 def database():
-    db = Database('test.db')
+    test_directory = PurePath('.')
+    db = Database(test_directory.joinpath('test.db'))
 
     yield db
     db.close()
@@ -40,7 +35,11 @@ def clean_database(database):
     database.update(query)
 
 
-def test_db_exists():
+def test_no_db():
+    assert not Path('test.db').exists()
+
+
+def test_db_exists(database):
     assert Path('test.db').exists()
 
 
@@ -140,3 +139,11 @@ def test_search_db_returns_dict_with_correct_values(database):
 
     for key, value in exp_value.items():
         assert exp_value[key] == results[0][key]
+
+
+def test_remove_db_after_tests():
+    test_directory = PurePath('.')
+    filepath = test_directory.joinpath('test.db')
+    file_to_remove = Path(filepath)
+    file_to_remove.unlink()
+    assert not Path(filepath).exists()
