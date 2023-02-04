@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import re
 from tkinter import messagebox as tkmb
+from tkinter import filedialog
+from pathlib import Path
 
 from widget import AreaCodeEntry, DobEntry, PhoneNumberEntry, LabelInput, ZipcodeEntry
 
@@ -231,6 +233,45 @@ class CreateEstimateWindow(ttk.Frame):
         return data
 
 
+class databaseDialog(ttk.Frame):
+    """Dialog window for finding or creating a file."""
+    def _add_frame(self, label, cols=2):
+        """Add a labelframe to the window."""
+
+        frame = ttk.LabelFrame(self, text=label)
+        frame.grid(sticky=tk.W + tk.E)
+        for i in range(cols):
+            frame.columnconfigure(i, weight=1)
+        return frame
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        database_dialog = self._add_frame("Good Faith Estimate Database", cols=1)
+        no_database_message = (f'If you already have a database, click "Search" to find it,\n'
+                               f'otherwise click "Create" to make a new database.')
+        ttk.Label(database_dialog, text=no_database_message).pack()
+        search_btn = ttk.Button(database_dialog, text="Search", command=self.search_db_option)
+        create_btn = ttk.Button(database_dialog, text="Create", command=self.create_db_option)
+        cancel_btn = ttk.Button(database_dialog, text="Cancel", command=self.close)
+
+        search_btn.pack()
+        create_btn.pack()
+
+
+    @classmethod
+    def check_if_db_exists(self, filepath):
+        return Path(filepath).exists()
+
+    def create_db_option(self):
+        filedialog.asksaveasfile()
+
+    def search_db_option(self):
+        filedialog.askopenfile()
+
+    def close(self):
+        pass
+
+
 if __name__ == "__main__":
     estimate_lists = {
         "services_sought": ("90837", "90847"),
@@ -243,15 +284,17 @@ if __name__ == "__main__":
     }
     root = tk.Tk()
     root.columnconfigure(0, weight=1)
-    client_selection = ClientSelectionWindow(root)
-    client_selection.columnconfigure(0, weight=1)
-    client_selection.grid(sticky=tk.W + tk.E)
-    new_client = NewClientWindow(root)
-    new_client.columnconfigure(0, weight=1)
-    new_client.grid(sticky=tk.W + tk.E)
-    estimate_info = CreateEstimateWindow(root, estimate_lists)
-    estimate_info.columnconfigure(0, weight=1)
-    estimate_info.grid(sticky=tk.W + tk.E)
+    database = databaseDialog(root)
+    database.pack()
+    # client_selection = ClientSelectionWindow(root)
+    # client_selection.columnconfigure(0, weight=1)
+    # client_selection.grid(sticky=tk.W + tk.E)
+    # new_client = NewClientWindow(root)
+    # new_client.columnconfigure(0, weight=1)
+    # new_client.grid(sticky=tk.W + tk.E)
+    # estimate_info = CreateEstimateWindow(root, estimate_lists)
+    # estimate_info.columnconfigure(0, weight=1)
+    # estimate_info.grid(sticky=tk.W + tk.E)
 
     # first_var = tk.StringVar()
     # last_var = tk.StringVar()
