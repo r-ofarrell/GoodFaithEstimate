@@ -299,9 +299,10 @@ class MainApplication:
     """Good Faith Estimate creator application."""
 
     def __init__(self, *args, **kwargs) -> None:
-        # super().__init__(*args, **kwargs)
         self.root = tk.Tk()
-        # self.file = Path(__file__)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+        self.root.geometry("300x300")
         self.database = self.check_for_database()
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
