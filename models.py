@@ -37,7 +37,7 @@ class Database:
                     "first_name": "TEXT NOT NULL",
                     "last_name": "TEXT NOT NULL",
                     "license_type": "TEXT NOT NULL",
-                    "date_of_birth": "TEXT NOT NULL",
+                    "date_of_birth": "TEXT",
                     "email": "TEXT",
                     "area_code": "TEXT",
                     "phone_number": "TEXT",

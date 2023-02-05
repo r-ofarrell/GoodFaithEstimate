@@ -5,4 +5,8 @@ venv
 # Ignore all database files
 *.db
 
+# Ignore all created pdf files
+*.pdf
+
 user_story.md
+populate_db.py

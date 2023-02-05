@@ -80,6 +80,7 @@ class Service:
     services_sought: tuple
     session_rate: str
     location: str
+    services_sought: str
     full_address: tuple = field(default=None, init=False)
     service_code: str = field(default=None, init=False)
     session_count_low: int = 12
@@ -104,13 +105,15 @@ class Service:
     def get_address(self):
         """Returns formatted address for where services will be provided."""
 
-        if self.location == "Mount Pleasant":
+        location_city = ' '.join(self.location.split()[1:])
+
+        if location_city == "Mount Pleasant":
             self.full_address = (
                 "890 Johnnie Dodds Blvd.",
                 "Bldg. 3 Ste. A",
                 "Mount Pleasant, S.C. 29464",
             )
-        elif self.location == "North Charleston":
+        elif location_city == "North Charleston":
             self.full_address = (
                 "9263 Medical Plaza Dr.",
                 "Ste. B",
@@ -270,11 +273,11 @@ class EstimateDetails:
                 self.therapist.therapist_id,
                 self.time.timestamp,
                 self.time.renewal_date,
-                self.service_info.service_code,
+                self.service_info.services_sought.split()[0],
                 self.service_info.session_rate,
                 self.service_info.new_gfe_low_total_estimate(),
                 self.service_info.new_gfe_high_total_estimate(),
-                self.service_info.location,
+                self.service_info.location.split()[0],
             )
         else:
             data = (
@@ -282,11 +285,11 @@ class EstimateDetails:
                 self.therapist.therapist_id,
                 self.time.timestamp,
                 self.time.renewal_date,
-                self.service_info.service_code,
+                self.service_info.services_sought.split()[0],
                 self.service_info.session_rate,
                 self.service_info.update_gfe_low_total_estimate(),
-                self.service_info.new_high_total_estimate(),
-                self.service_info.location,
+                self.service_info.update_gfe_high_total_estimate(),
+                self.service_info.location.split()[0],
             )
 
         return data
@@ -340,11 +343,12 @@ class MainApplication:
             service_values.append(f"{service[0]} {' '.join(service[1:])}")
         self.life_resources_data["services"] = service_values
 
-        locations_query = """SELECT city FROM locations"""
+        locations_query = """SELECT location_id, city FROM locations"""
         self.database.search_and_return_tuple(locations_query)
         location_values = []
         for location in self.database.get_search_results():
-            location_values.append(location[0])
+            location_values.append(
+                f"{location[0]} {' '.join(location[1:])}")
         self.life_resources_data["location"] = location_values
 
         self.search_window.grid()
@@ -442,8 +446,8 @@ class MainApplication:
             self.client, self.therapist, self.service_info, self.time
         )
         query = """INSERT INTO estimate_details (client_id, therapist_id,
-        date_of_estimate, renewal_date, services_sought, session_rate,
-        low_estimate, high_estimate, location)
+        date_of_estimate, renewal_date, service_id, session_rate,
+        low_estimate, high_estimate, location_id)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         self.database.update(
             query,
