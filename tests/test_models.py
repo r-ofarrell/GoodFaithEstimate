@@ -38,6 +38,12 @@ def clean_database(database):
 def test_no_db():
     assert not Path('test.db').exists()
 
+def test_create_db_tables(database):
+    database.create_db_tables()
+    description = database._conn.execute("SELECT * FROM clients")
+    for name1, name2 in zip(database.database_tables[0]['columns'].keys(), description):
+        assert name1 == name2[0]
+
 
 def test_db_exists(database):
     assert Path('test.db').exists()

@@ -11,16 +11,115 @@ class Database:
         self._cur_dict = self.create_cursor()
         self._cur_dict.row_factory = sqlite3.Row
         self._search_results = None
+        self.database_tables = [
+            {
+                "table": "clients",
+                "columns": {
+                    "client_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "first_name": "TEXT NOT NULL",
+                    "last_name": "TEXT NOT NULL",
+                    "date_of_birth": "TEXT",
+                    "email": "TEXT",
+                    "area_code": "TEXT",
+                    "phone_number": "TEXT",
+                    "street": "TEXT",
+                    "apt_bldg_ste": "TEXT",
+                    "city": "TEXT",
+                    "state": "TEXT",
+                    "zipcode": "TEXT",
+                    "diagnosis": "TEXT",
+                },
+            },
+            {
+                "table": "therapists",
+                "columns": {
+                    "therapist_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "first_name": "TEXT NOT NULL",
+                    "last_name": "TEXT NOT NULL",
+                    "license_type": "TEXT NOT NULL",
+                    "date_of_birth": "TEXT NOT NULL",
+                    "email": "TEXT",
+                    "area_code": "TEXT",
+                    "phone_number": "TEXT",
+                    "tax_id": "TEXT",
+                    "npi": "TEXT",
+                    "street": "TEXT",
+                    "apt_bldg_ste": "TEXT",
+                    "city": "TEXT",
+                    "state": "TEXT",
+                    "zipcode": "TEXT",
+                },
+            },
+            {
+                "table": "locations",
+                "columns": {
+                    "location_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "street": "TEXT",
+                    "apt_bldg_ste": "TEXT",
+                    "city": "TEXT",
+                    "state": "TEXT",
+                    "zipcode": "TEXT",
+                }
+            },
+            {
+                "table": "services",
+                "columns": {
+                    "service_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "cpt_code": "TEXT",
+                    "description": "TEXT",
+                }
+            },
+            {
+                "table": "estimate_details",
+                "columns": {
+                    "estimate_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "client_id": "INTEGER",
+                    "therapist_id": "INTEGER",
+                    "date_of_service": "TEXT NOT NULL",
+                    "renewal_date": "TEXT NOT NULL",
+                    "service_id": "INTEGER",
+                    "session_rate": "TEXT NOT NULL",
+                    "low_estimate": "TEXT NOT NULL",
+                    "high_estimate": "TEXT NOT NULL",
+                    "location_id": "INTEGER",
+                }
+            },
+        ]
+
+    def create_db_tables(self):
+        """Creates tables for GFE database."""
+        foreign_keys = """FOREIGN KEY (client_id) REFERENCES clients (client_id) ON UPDATE CASCADE ON DELETE SET NULL,
+        FOREIGN KEY (therapist_id) REFERENCES services (service_id) ON UPDATE CASCADE ON DELETE SET NULL,
+        FOREIGN KEY (service_id) REFERENCES therapists (therapist_id) ON UPDATE CASCADE ON DELETE SET NULL,
+        FOREIGN KEY (location_id) REFERENCES locations (location_id) ON UPDATE CASCADE ON DELETE SET NULL"""
+        last_table = len(self.database_tables) - 1
+
+        for index, item in enumerate(self.database_tables):
+            if index == last_table:
+                table = item["table"]
+                columns = [
+                    f"{key} {value}" for key, value in item["columns"].items()
+                ]
+                query = (
+                    f"CREATE TABLE IF NOT EXISTS {table} ({', '.join(columns)}, {foreign_keys});"
+                )
+                self.update(query)
+
+            else:
+                table = item["table"]
+                columns = [
+                    f"{key} {value}" for key, value in item["columns"].items()
+                ]
+                query = (
+                    f"CREATE TABLE IF NOT EXISTS {table} ({', '.join(columns)});"
+                )
+                self.update(query)
 
     def resource_path(self, relative_path):
         """Get the absolute path to a given resource."""
 
         return os.path.join(
-            os.environ.get(
-            "_MEIPASS2",
-            os.path.abspath(".")
-            ),
-            relative_path
+            os.environ.get("_MEIPASS2", os.path.abspath(".")), relative_path
         )
 
     def create_connection(self):
