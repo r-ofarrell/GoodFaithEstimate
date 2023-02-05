@@ -48,6 +48,7 @@ class Database:
                     "city": "TEXT",
                     "state": "TEXT",
                     "zipcode": "TEXT",
+                    "therapist_status": "INTEGER",
                 },
             },
             {

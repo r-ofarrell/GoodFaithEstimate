@@ -299,7 +299,7 @@ class MainApplication:
         # super().__init__(*args, **kwargs)
         self.root = tk.Tk()
         # self.file = Path(__file__)
-        self.database = models.Database("gfe_db.db")
+        self.database = self.check_for_database()
         self.search_window = views.ClientSelectionWindow(self.root)
         self.new_client_window = None
         self.new_window = None
@@ -349,6 +349,15 @@ class MainApplication:
 
         self.search_window.grid()
         self.root.mainloop()
+
+    def check_for_database(self):
+        """Checks if database exists and if not, creates appropriate database."""
+        if not Path('gfe_db.db').exists():
+            db = models.Database('gfe_db.db')
+            db.create_db_tables()
+            return db
+
+        return models.Database('gfe_db.db')
 
     def _get_client_from_db(self, *_) -> None:
         """Searches for a given client in the database."""
