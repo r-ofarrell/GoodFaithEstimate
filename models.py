@@ -76,7 +76,7 @@ class Database:
                     "estimate_id": "INTEGER PRIMARY KEY AUTOINCREMENT",
                     "client_id": "INTEGER",
                     "therapist_id": "INTEGER",
-                    "date_of_service": "TEXT NOT NULL",
+                    "date_of_estimate": "TEXT NOT NULL",
                     "renewal_date": "TEXT NOT NULL",
                     "service_id": "INTEGER",
                     "session_rate": "TEXT NOT NULL",

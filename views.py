@@ -101,6 +101,7 @@ class NewClientWindow(ttk.Frame):
             "first_name": tk.StringVar(),
             "last_name": tk.StringVar(),
             "date_of_birth": tk.StringVar(),
+            "email": tk.StringVar(),
             "area_code": tk.StringVar(),
             "phone_number": tk.StringVar(),
             "street": tk.StringVar(),
@@ -115,6 +116,9 @@ class NewClientWindow(ttk.Frame):
         LabelInput(new_client, "Last name", self._vars["last_name"]).grid()
         LabelInput(
             new_client, "Date of birth", self._vars["date_of_birth"], input_class=DobEntry
+        ).grid()
+        LabelInput(
+            new_client, "Email", self._vars["email"]
         ).grid()
         LabelInput(
             new_client, "Area code", self._vars["area_code"], input_class=AreaCodeEntry
