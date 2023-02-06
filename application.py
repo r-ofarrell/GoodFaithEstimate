@@ -358,9 +358,22 @@ class MainApplication:
     def check_for_database(self):
         """Checks if database exists and if not, creates appropriate database."""
         if not Path('gfe_db.db').exists():
-            db = models.Database('gfe_db.db')
-            db.create_db_tables()
-            return db
+            if tkmb.askyesno("Database not found",
+                             "Do you want to create a database?"):
+                db = models.Database('gfe_db.db')
+                db.create_db_tables()
+                return db
+
+            else:
+                instructions = ("Program will close now. Please move database"
+                                " to the directory where the application"
+                                " is located or run the program again to create"
+                                " a database.")
+                tkmb.showinfo(
+                    "Database not found", instructions
+                    )
+                self.root.destroy()
+                return None
 
         return models.Database('gfe_db.db')
 

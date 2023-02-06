@@ -96,7 +96,7 @@ class Database:
         last_table = len(self.database_tables) - 1
 
         for index, item in enumerate(self.database_tables):
-            if index == last_table:
+            if index == last_table: # Adds foreign keys for estimate_table
                 table = item["table"]
                 columns = [
                     f"{key} {value}" for key, value in item["columns"].items()
