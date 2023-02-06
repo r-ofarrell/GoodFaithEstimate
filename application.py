@@ -435,9 +435,10 @@ class MainApplication:
     def _input_client_to_database(self, *_):
         client_info = self.new_client_window.get()
         columns = [key for key in client_info.keys()]
-        query_values = [f":{key}" for key in client_info.keys()]
-        query = f"""INSERT INTO clients ({' ,'.join(columns)}) VALUES({', '.join(query_values)})"""
-        self.database.update(query, client_info)
+        values = [value for value in client_info.values()]
+        mark = "?"
+        query = f"""INSERT INTO clients ({', '.join(columns)}) VALUES({', '.join(mark * len(columns))})"""
+        self.database.update(query, tuple(values))
         tkmb.showinfo("Success", f"{client_info['first_name']} {client_info['last_name']} was created successfully.")
         self.new_window1.destroy()
 
@@ -478,10 +479,9 @@ class MainApplication:
 
     def _get_therapist(self, data: dict) -> object:
         query = """SELECT therapist_id, first_name, last_name, license_type, npi, tax_id
-        FROM therapists WHERE therapist_id = :therapist_id"""
+        FROM therapists WHERE therapist_id = (?)"""
         selected_therapist_id = data["therapist"].split()[0]
-        value = {"therapist_id": selected_therapist_id}
-        self.database.search(query, value)
+        self.database.search(query, (selected_therapist_id,))
         results = self.database.get_search_results()
         return Therapist.create_from_dict(results[0])
 

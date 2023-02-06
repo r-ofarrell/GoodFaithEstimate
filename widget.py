@@ -77,22 +77,22 @@ class DobEntry(ttk.Entry):
         if event == "key":
             if action == "0":
                 valid = True
-            elif index in ("0", "1", "2", "3", "5", "6", "8", "9"):
+            elif index in ("0", "1", "3", "4", "6", "7", "8", "9"):
                 valid = char.isdigit()
-            elif index in ("4", "7"):
+            elif index in ("2", "5"):
                 valid = char == "-"
             else:
                 valid = False
         elif event == "focusout":
             try:
-                datetime.strptime(self.get(), "%Y-%m-%d")
+                datetime.strptime(self.get(), "%m-%d-%Y")
             except ValueError:
                 valid = False
 
         return valid
 
     def _invalid(self, event):
-        self._toggle_error("Please enter date of birth as yyyy-mm-dd")
+        self._toggle_error("Please enter date of birth as mm-dd-yyyy")
 
     def _toggle_error(self, error=""):
         self.error.set(error)
