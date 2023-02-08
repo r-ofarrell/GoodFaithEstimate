@@ -1,4 +1,4 @@
-from os import wait
+# from os import wait
 import tkinter as tk
 import unittest
 import sys
@@ -73,7 +73,7 @@ class TestCreateEstimateWindow(unittest.TestCase):
     def setUp(self) -> None:
         self.root = tk.Tk()
         self.lr_data = {
-            "services_sought": ("90837", "90847"),
+            "services": ("90837", "90847"),
             "therapists": (
                 "1 Ryan O'Farrell, Psy.D.",
                 "2 Jacquie Atkins, LPC",
@@ -95,7 +95,7 @@ class TestCreateEstimateWindow(unittest.TestCase):
     def test_window_get(self):
         data = dict()
         self.create_estimate_window._vars["services_sought"].set(
-            self.lr_data["services_sought"][0]
+            self.lr_data["services"][0]
         )
         self.create_estimate_window._vars["session_rate"].set("165")
         self.create_estimate_window._vars["therapist"].set(

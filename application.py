@@ -12,7 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 from markupsafe import re
 import models
 import views
-import widget
+import widgets
 
 
 @dataclass

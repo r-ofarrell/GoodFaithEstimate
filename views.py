@@ -5,7 +5,7 @@ from tkinter import messagebox as tkmb
 from tkinter import filedialog
 from pathlib import Path
 
-from widget import AreaCodeEntry, DobEntry, PhoneNumberEntry, LabelInput, ZipcodeEntry
+from widgets import AreaCodeEntry, DobEntry, PhoneNumberEntry, LabelInput, ZipcodeEntry
 
 
 class ClientSelectionWindow(ttk.Frame):

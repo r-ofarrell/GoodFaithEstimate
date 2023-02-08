@@ -2,7 +2,7 @@ import pytest
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from ..widget import DobEntry, AreaCodeEntry, PhoneNumberEntry, ZipcodeEntry
+from ..widgets import DobEntry, AreaCodeEntry, PhoneNumberEntry, ZipcodeEntry
 
 
 @pytest.fixture()
