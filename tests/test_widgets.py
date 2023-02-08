@@ -19,7 +19,7 @@ def dob(create_window):
 
 def test_DobEntry_valid_inputs(dob):
     valid = True
-    num_indexes = [0, 1, 2, 3, 5, 6, 8, 9]
+    num_indexes = [0, 1, 3, 4, 6, 7, 8, 9]
     for index in range(0, 10):
         if index in num_indexes:
             if not dob._validate("1", str(index), "key", "1"):
@@ -33,7 +33,7 @@ def test_DobEntry_valid_inputs(dob):
 
 def test_DobEntry_invalid_inputs(dob):
     invalid = True
-    num_indexes = [0, 1, 2, 3, 5, 6, 8, 9]
+    num_indexes = [0, 1, 3, 4, 6, 7, 8, 9]
     for index in range(0, 10):
         if index in num_indexes:
             if dob._validate("/", str(index), "key", "1"):
@@ -46,14 +46,14 @@ def test_DobEntry_invalid_inputs(dob):
 
 
 def test_DobEntry_focusout_valid_input(dob):
-    date = "2000-01-01"
+    date = "01-01-2000"
     for index, char in enumerate(date):
         dob.insert(index, char)
     assert dob._validate("0", "end", "focusout", "1")
 
 
 def test_DobEntry_focusout_invalid_input(dob):
-    date = "01-01-2000"
+    date = "2000-01-01"
     for index, char in enumerate(date):
         dob.insert(index, char)
     assert not dob._validate("0", "end", "focusout", "1")
@@ -121,7 +121,7 @@ def test_ZipcodeEntry_valid_input(zip_code):
     valid = True
     zip_codes = [29466, 29464, 95003, 94024, 97132]
     for num in zip_codes:
-        if not zip_code._validate(str(num)):
+        if not zip_code._validate(str(num), "key", "1", str(num)):
             valid = False
     assert valid
 
@@ -130,6 +130,6 @@ def test_ZipcodeEntry_invalid_input(zip_code):
     invalid = True
     zip_codes = ["abcdef", "1234a", "a1234", "-----", "95003-1234", "29464-1234"]
     for num in zip_codes:
-        if zip_code._validate(str(num)):
+        if zip_code._validate(str(num), "key", "1", str(num)):
             invalid = False
     assert invalid

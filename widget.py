@@ -123,10 +123,8 @@ class AreaCodeEntry(ttk.Entry):
         if event == "key":
             if action == "0":
                 valid = True
-            elif not char.isdigit():
+            elif not char.isdigit() or len(proposed) > 3:
                 valid = False
-        elif event == "focusout":
-            valid = len(self.get()) == 3
 
         return valid
 
@@ -162,10 +160,8 @@ class PhoneNumberEntry(ttk.Entry):
         if event == "key":
             if action == "0":
                 valid = True
-            elif not char.isdigit():
+            elif not char.isdigit() or len(proposed) > 7:
                 valid = False
-        elif event == "focusout":
-            valid = len(self.get()) == 7
 
         return valid
 
@@ -187,14 +183,29 @@ class ZipcodeEntry(ttk.Entry):
         super().__init__(parent, *args, **kwargs)
         self.error = tk.StringVar()
         self.configure(
-            validate="focusout",
-            validatecommand=(self.register(self._validate), "%s"),
-            invalidcommand=(self.register(self._invalid), "%s"),
+            validate="all",
+            validatecommand=(
+                self.register(self._validate),
+                "%S",
+                "%V",
+                "%d",
+                "%P",
+            ),
+            invalidcommand=(self.register(self._invalid), "%V"),
         )
 
-    def _validate(self, value):
+    def _validate(self, char, event, action, proposed):
         self._toggle_error()
-        return len(value) == 5 and value.isdigit()
+        valid = True
+        if event == "key":
+            if action == "0":
+                valid = True
+            elif not char.isdigit() or len(proposed) > 5:
+                valid = False
+
+        return valid
+        # Add check for if zipcode is over 5 characters before focus out
+        # return len(value) == 5 and value.isdigit()
 
     def _invalid(self, value):
         self._toggle_error("Please enter a 5 digit zipcode")
