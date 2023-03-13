@@ -1,7 +1,6 @@
 __pycache__
 .__pytest_cache
 venv
-images
 
 # Ignore all database files
 *.db
