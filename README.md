@@ -1,13 +1,18 @@
+# Table of contents
+1. [Purpose](#purpose)
+2. [Prerequisites](#prerequisites)
+3. [Installation](#installation)
+4. [Roadmap](#roadmap)
 # Good Faith Estimate Creator
 <img align="left" width="250" height="250" src="images/add_create_client_screen.png">
 <img align="right" width="250" height="250" src="images/search_results.png">
 <img align="left" width="250" height="450" src="images/create_client_window.png">
 <img align="right" width="250" height="250" src="images/estimate_creation_window.png">
 
-## Purpose
+## Purpose <a name="purpose"></a>
 The Good Faith Estimate Creator (GFEC) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEC will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
 
-## Prerequisites
+## Prerequisites <a name="prerequisites"></a>
 - Python 3.7+
 - Jinja2 3.1.2
 - MarkupSafe 2.1.2
@@ -37,7 +42,7 @@ On Manjaro, its a little different, but you can install Tkinter using:
 pamac install tk
 ```
 
-## Installation
+## Installation <a name="installation"></a>
 
 Presently, the GFEC is not setup for easy installation by other users. You can download the files, create a virtual environment, and install all of the prerequisites (beside wkhtmltopdf as mentioned above) from the requirements.txt file by using:
 
@@ -55,7 +60,7 @@ When you first run the GFEC, it will check to see if a database for storing esti
 
 Please note that the GFEC does not work on Windows without some additional configuration.
 
-## Roadmap
+## Roadmap <a name="roadmap"></a>
 - Create user windows for inputting and editing therapist information, information about services offered, and information about practice location(s) into the database.
 - Configure the GFEC to work on Windows by default (GFEC currently only works on MacOS and Linux by default).
 - Expand the GFEC to become a potential client record keeping system.
