@@ -1,8 +1,9 @@
 # Good Faith Estimate Creator
-![Main window](images/add_create_client_screen.png)
-![Search results](images/search_results.png)
-![Create new client window](images/create_client_window.png)
-![Estimate creation window](images/estimate_creation_window.png)
+<img align="left" width="250" height="250" src="images/add_create_client_screen.png">
+<img align="right" width="250" height="250" src="images/search_results.png">
+<img align="left" width="250" height="450" src="images/create_client_window.png">
+<img align="right" width="250" height="250" src="images/estimate_creation_window.png">
+
 ## Purpose
 The Good Faith Estimate Creator (GFEC) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEC will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
 
