@@ -12,7 +12,7 @@ The Good Faith Estimate Creator (GFEC) was designed to enable the non-profit men
 
 Besides Python itself, all of the dependencies can be downloaded using pip. The exception is wkhtmltopdf, which is an external program that pdfkit requires to function correctly. You can download wkhtmltopdf here: https://wkhtmltopdf.org/
 
-Additionally, while the Tkinter library usually comes standard in Python, on many Linux distributions, I have found it is not included in Python. When Tkinter is not included in Python, you cannot download it from pip. Instead, please search your distribution's repositories for python3-tk and install it from there.
+Additionally, while the Tkinter library usually comes standard in Python, on many Linux distributions I have found that this is not the case. When Tkinter is not included in Python, unfortunately you cannot download it from pip. Instead, please search your distribution's repositories for python3-tk and install it from there.
 
 On Debian based distributions, if Tkinter is missing you should be able to install it using:
 
@@ -34,7 +34,21 @@ pamac install tk
 
 ## Installation
 
-Presently, the GFEC is not setup for easy installation by other users. You can download the files, create a virtual environment, and install all of the prerequisites (beside wkhtmltopdf as mentioned above). When you first run the GFEC, it check to see if a database for storing estimate information is already present and if not, it will ask if you would like the program to create one. The GFEC will create a sqlite3 database that will work with the program, but you will need to input information specific to your practice before the program will work. This means inputting information about your therapists, the services you offer, and the locations where you offer services into the appropriate sqlite3 tables (named therapists, services, and locations respectively). Once this information has been input into the database, the program should work.
+Presently, the GFEC is not setup for easy installation by other users. You can download the files, create a virtual environment, and install all of the prerequisites (beside wkhtmltopdf as mentioned above) from the requirements.txt file by using:
+
+```
+pip install -r requirements.txt
+```
+
+Once you activate the virtual environment, you can run the GFEC by using:
+
+```
+python application.py
+```
+
+When you first run the GFEC, it will check to see if a database for storing estimate information is already present and if not, it will ask if you would like the program to create one. The GFEC will create a sqlite3 database that will work with the program, but you will need to input information specific to your practice before the program will work. This means inputting information about your therapists, the services you offer, and the locations where you offer services into the appropriate sqlite3 tables (named therapists, services, and locations respectively). Once this information has been input into the database, the program should work. By default, the program will store the generated PDFs in the same folder as application.py.
+
+Please note that the GFEC does not work on Windows without some additional configuration.
 
 ## Roadmap
 - Create user windows for inputting and editing therapist information, information about services offered, and information about practice location(s) into the database.
