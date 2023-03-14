@@ -2,12 +2,14 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox as tkmb
 from tkinter import ttk, Toplevel
-from pathlib import Path
+from tkinter import filedialog
+from pathlib import Path, PurePath
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict, field
 import pdfkit
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
+from configparser import ConfigParser
 
 from markupsafe import re
 import models
@@ -305,6 +307,8 @@ class MainApplication:
         self.root.geometry("300x300")
         self.database = self.check_for_database()
         self.search_window = views.ClientSelectionWindow(self.root)
+        self.configuration = models.Configuration()
+        self.save_directory = self.set_save_directory()
         self.new_client_window = None
         self.new_window = None
         self.estimate_window = None
@@ -325,6 +329,7 @@ class MainApplication:
         self.search_window.bind(
             "<<CreateEstimate>>", self._show_estimate_window
         )
+
 
         self.life_resources_data = dict()
         therapist_query = """SELECT therapist_id, first_name, last_name,
@@ -536,19 +541,32 @@ class MainApplication:
         else:
             raise Exception("File does not exist.")
 
+    def set_save_directory(self):
+        """Sets directory to save estimate PDFs to."""
+        if self.configuration.save_directory:
+            save_directory = self.configuration.get_save_directory()
+
+        else:
+            if tkmb.askyesno("Choose save directory", "Would you like to choose the directory to save estimate PDFs to?"):
+                save_directory = self.configuration.set_save_directory(tk.filedialog.askdirectory())
+            else:
+                tkmb.showinfo("Save to default directory", "Your estimate PDF will save to the home directory.")
+                save_directory = Path.home()
+
+        return PurePath(save_directory)
+
     def convert_to_pdf(self):
         """Converts html to pdf."""
         css = "style.css"
-        # filepath = folder you want to save pdf file to
         pdf_file = f"{self.filename[:-5]}.pdf"
+        save_filepath = self.save_directory / pdf_file
         # config = filepath to wkhtmltopdf executable (needed on Windows systems)
         pdfkit.from_file(
             f"{self.filename}",
-            pdf_file,
+            save_filepath,
             options={"enable-local-file-access": ""},
             css=css,
         )
-
 
 if __name__ == "__main__":
     app = MainApplication()

@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from configparser import ConfigParser
 import os
 
 
@@ -165,3 +166,23 @@ class Database:
     def close(self):
         """Closes connection to database."""
         self._conn.close()
+
+
+class Configuration:
+    """Provides utilities for working with configuration file."""
+    def __init__(self):
+        self.parser = ConfigParser()
+        self.parser.read("config.txt")
+        self.save_directory = self.get_save_directory()
+
+    def get_save_directory(self):
+        """Gets current save directory for generated PDFs."""
+        return self.parser.get("config", "save_filepath")
+
+    def set_save_directory(self, selected_directory):
+        """Checks whether user has set a save directory for generated PDFs."""
+        self.parser.set("config", "save_filepath", selected_directory)
+        with open("config.txt", "w") as config_file:
+            self.parser.write(config_file)
+
+        return self.get_save_directory()
