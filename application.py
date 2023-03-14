@@ -269,6 +269,7 @@ class EstimateDetails:
     time: object
 
     def get_data_for_database(self):
+        most_recent_estimate = 1
         if self.service_info.new_or_update == "New":
             data = (
                 self.client.client_id,
@@ -280,6 +281,7 @@ class EstimateDetails:
                 self.service_info.new_gfe_low_total_estimate(),
                 self.service_info.new_gfe_high_total_estimate(),
                 self.service_info.location.split()[0],
+                most_recent_estimate
             )
         else:
             data = (
@@ -292,6 +294,7 @@ class EstimateDetails:
                 self.service_info.update_gfe_low_total_estimate(),
                 self.service_info.update_gfe_high_total_estimate(),
                 self.service_info.location.split()[0],
+                most_recent_estimate
             )
 
         return data
@@ -467,8 +470,8 @@ class MainApplication:
         )
         query = """INSERT INTO estimate_details (client_id, therapist_id,
         date_of_estimate, renewal_date, service_id, session_rate,
-        low_estimate, high_estimate, location_id)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        low_estimate, high_estimate, location_id, most_recent_estimate)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         self.database.update(
             query,
             self.estimate_details.get_data_for_database(),
@@ -490,6 +493,13 @@ class MainApplication:
         results = self.database.get_search_results()
         return Therapist.create_from_dict(results[0])
 
+    def _reset_most_recent_estimate(self):
+        """Sets most_recent_estimate in database to 0 (which is False)."""
+        query = """UPDATE estimate_details SET most_recent_estimate = 0
+        WHERE client_id = (?)"""
+        values = (self.client.client_id,)
+        self.database.update(query, values)
+
     def _create_estimate(self, *_):
         estimate_window_data = self.estimate_window.get()
         self.therapist = self._get_therapist(estimate_window_data)
@@ -497,6 +507,7 @@ class MainApplication:
         self.service_info = Service.create_from_dict(estimate_window_data)
         self.time = Time()
         self.service_info.date_of_estimate = self.time.timestamp
+        self._reset_most_recent_estimate()
         self._input_estimate_to_database()
         self.create_html()
         self.convert_to_pdf()
@@ -566,6 +577,7 @@ class MainApplication:
             save_filepath,
             options={"enable-local-file-access": ""},
             css=css,
+            verbose=True
         )
 
 if __name__ == "__main__":

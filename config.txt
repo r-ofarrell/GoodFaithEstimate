@@ -1,3 +1,2 @@
 [config]
-save_filepath = 
-
+save_filepath =

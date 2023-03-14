@@ -84,6 +84,7 @@ class Database:
                     "low_estimate": "TEXT NOT NULL",
                     "high_estimate": "TEXT NOT NULL",
                     "location_id": "INTEGER",
+                    "most_recent_estimate": "INTEGER"
                 }
             },
         ]
@@ -134,7 +135,7 @@ class Database:
         return self._conn.cursor()
 
     def search(self, query, values=None):
-        """Searches database."""
+        """Searches database and returns dict."""
         if values:
             self._cur_dict.execute(query, values)
         else:
@@ -143,7 +144,7 @@ class Database:
         self._search_results = results
 
     def search_and_return_tuple(self, query, values=None):
-        """Searches database."""
+        """Searches database and returns tuple."""
         if values:
             self._cur.execute(query, values)
         else:
