@@ -7,7 +7,7 @@ from datetime import datetime
 db = Database('gfe_db.db')
 
 query2 = """SELECT renewal_date, clients.client_id, first_name, last_name FROM clients INNER JOIN estimate_details on clients.client_id = estimate_details.client_id WHERE renewal_date
-< DATETIME('now', '1 month')"""
+< DATETIME('now', '1 month') and most_recent_estimate = 1"""
 
 db.search_and_return_tuple(query2)
 results = db.get_search_results()
