@@ -4,10 +4,12 @@
 3. [Installation](#installation)
 4. [Roadmap](#roadmap)
 # Good Faith Estimate Management System
+<div>
 <img align="left" width="250" height="250" src="images/add_create_client_screen.png">
 <img align="right" width="250" height="250" src="images/search_results.png">
 <img align="left" width="250" height="450" src="images/create_client_window.png">
 <img align="right" width="250" height="250" src="images/estimate_creation_window.png">
+</div>
 
 ## Purpose <a name="purpose"></a>
 The Good Faith Estimate Management System (GFEMS) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEMS will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
