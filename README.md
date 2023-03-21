@@ -3,14 +3,14 @@
 2. [Prerequisites](#prerequisites)
 3. [Installation](#installation)
 4. [Roadmap](#roadmap)
-# Good Faith Estimate Creator
+# Good Faith Estimate Management System
 <img align="left" width="250" height="250" src="images/add_create_client_screen.png">
 <img align="right" width="250" height="250" src="images/search_results.png">
 <img align="left" width="250" height="450" src="images/create_client_window.png">
 <img align="right" width="250" height="250" src="images/estimate_creation_window.png">
 
 ## Purpose <a name="purpose"></a>
-The Good Faith Estimate Creator (GFEC) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEC will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
+The Good Faith Estimate Management System (GFEMS) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEMS will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
 
 ## Prerequisites <a name="prerequisites"></a>
 - Python 3.7+
@@ -44,23 +44,23 @@ pamac install tk
 
 ## Installation <a name="installation"></a>
 
-Presently, the GFEC is not setup for easy installation by other users. You can download the files, create a virtual environment, and install all of the prerequisites (beside wkhtmltopdf as mentioned above) from the requirements.txt file by using:
+Presently, the GFEMS is not setup for easy installation by other users. You can download the files, create a virtual environment, and install all of the prerequisites (beside wkhtmltopdf as mentioned above) from the requirements.txt file by using:
 
 ```
 pip install -r requirements.txt
 ```
 
-Once you activate the virtual environment, you can run the GFEC by using:
+Once you activate the virtual environment, you can run the GFEMS by using:
 
 ```
 python application.py
 ```
 
-When you first run the GFEC, it will check to see if a database for storing estimate information is already present and if not, it will ask if you would like the program to create one. The GFEC will create a sqlite3 database that will work with the program, but you will need to input information specific to your practice before the program will work. This means inputting information about your therapists, the services you offer, and the locations where you offer services into the appropriate sqlite3 tables (named therapists, services, and locations respectively). Once this information has been input into the database, the program should work. By default, the program will store the generated PDFs in the same folder as application.py.
+When you first run the GFEMS, it will check to see if a database for storing estimate information is already present and if not, it will ask if you would like the program to create one. The GFEMS will create a sqlite3 database that will work with the program, but you will need to input information specific to your practice before the program will work. This means inputting information about your therapists, the services you offer, and the locations where you offer services into the appropriate sqlite3 tables (named therapists, services, and locations respectively). Once this information has been input into the database, the program should work. By default, the program will store the generated PDFs in the same folder as application.py.
 
-Please note that the GFEC does not work on Windows without some additional configuration.
+Please note that the GFEMS does not work on Windows without some additional configuration.
 
 ## Roadmap <a name="roadmap"></a>
 - Create user windows for inputting and editing therapist information, information about services offered, and information about practice location(s) into the database.
-- Configure the GFEC to work on Windows by default (GFEC currently only works on MacOS and Linux by default).
-- Expand the GFEC to become a potential client record keeping system.
+- Configure the GFEMS to work on Windows by default (GFEMS currently only works on MacOS and Linux by default).
+- Expand the GFEMS to become a potential client record keeping system.
