@@ -1,20 +1,25 @@
-# Table of contents
+# Good Faith Estimate Management System
+
+## Table of contents
+
 1. [Purpose](#purpose)
 2. [Prerequisites](#prerequisites)
 3. [Installation](#installation)
 4. [Roadmap](#roadmap)
-# Good Faith Estimate Management System
-<div>
-<img align="left" width="250" height="250" src="images/add_create_client_screen.png">
-<img align="right" width="250" height="250" src="images/search_results.png">
-<img align="left" width="250" height="450" src="images/create_client_window.png">
-<img align="right" width="250" height="250" src="images/estimate_creation_window.png">
-</div>
+
+## Screenshots
+
+![Search screen](images/add_create_client_screen.png)
+![Search results screen](images/search_results.png)
+![Create new client screen](images/create_client_window.png)
+![Create new estimate screen](images/estimate_creation_window.png)
 
 ## Purpose <a name="purpose"></a>
+
 The Good Faith Estimate Management System (GFEMS) was designed to enable the non-profit mental health center that I work for to quickly generate Good Faith Estimates (per the No Surprises Act) for potential and current clients. The GFEMS will take a client's info, ask about what services the client is seeking, and then generate a PDF estimate to give to the client, while storing the estimates details in a database. The renewal_checker.py script can be set to run daily and will alert the user to any renewals that are upcoming in the next 30 days.
 
 ## Prerequisites <a name="prerequisites"></a>
+
 - Python 3.7+
 - Jinja2 3.1.2
 - MarkupSafe 2.1.2
@@ -22,7 +27,7 @@ The Good Faith Estimate Management System (GFEMS) was designed to enable the non
 - python-dateutil 2.8.2
 - wkhtmltopdf
 
-Besides Python itself, all of the dependencies can be downloaded using pip. The exception is wkhtmltopdf, which is an external program that pdfkit requires to function correctly. You can download wkhtmltopdf here: https://wkhtmltopdf.org/
+Besides Python itself, all of the dependencies can be downloaded using pip. The exception is wkhtmltopdf, which is an external program that pdfkit requires to function correctly. You can download wkhtmltopdf here: <https://wkhtmltopdf.org/>
 
 Additionally, while the Tkinter library usually comes standard in Python, on many Linux distributions I have found that this is not the case. When Tkinter is not included in Python, unfortunately you cannot download it from pip. Instead, please search your distribution's repositories for python3-tk and install it from there.
 
@@ -63,6 +68,7 @@ When you first run the GFEMS, it will check to see if a database for storing est
 Please note that the GFEMS does not work on Windows without some additional configuration.
 
 ## Roadmap <a name="roadmap"></a>
+
 - Create user windows for inputting and editing therapist information, information about services offered, and information about practice location(s) into the database.
 - Configure the GFEMS to work on Windows by default (GFEMS currently only works on MacOS and Linux by default).
 - Expand the GFEMS to become a potential client record keeping system.
